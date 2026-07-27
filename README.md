@@ -1,58 +1,57 @@
 # ULEBULE ARCADE
 
-Ena sama stran, en sam retro arkadni avtomat — in v njem vse igrice z
-[github.com/ulebule](https://github.com/ulebule).
+One page, one retro arcade cabinet — and every browser game from
+[github.com/ulebule](https://github.com/ulebule) inside it.
 
-**Igraj:** https://ulebule.github.io/ulebule-arcade/
+**Play:** https://ulebule.github.io/ulebule-arcade/
 
-## Kaj je notri
+## What's in the cabinet
 
-| # | Igra | Repo | Poklon |
-|---|------|------|--------|
+| # | Game | Repo | Tribute to |
+|---|------|------|------------|
 | 1 | TOWER | [nebulus](https://github.com/ulebule/nebulus) | Nebulus (Hewson, 1987) |
 | 2 | ATOMSKI PINBALL | [atomski-pinball](https://github.com/ulebule/atomski-pinball) | Atari Video Pinball (1980) |
 | 3 | BATTY | [batty](https://github.com/ulebule/batty) | Batty (Elite, ZX Spectrum, 1987) |
 
-Igre se naložijo v `<iframe>` kar znotraj zaslona avtomata, tako da lahko
-med njimi preklapljaš brez zapuščanja strani. Vsaka igra ostaja v svojem
-repotu in na svojem GitHub Pages naslovu — ta stran jih samo zbere na enem
-mestu.
+Games load into an `<iframe>` inside the cabinet screen, so you can switch
+between them without leaving the page. Each game stays in its own repo at
+its own GitHub Pages address — this page only gathers them in one place.
 
-## Kako se uporablja
+## Controls
 
-- `◀ ▶` ali `↑ ↓` — izbira igre, `ENTER` / `SPACE` — start
-- `1` – `3` — skoči naravnost na igro
-- `ESC` — nazaj na izbiro iger
-- `M` — zvok menija, `L` — jezik
-- klik ali tap na vrstico oziroma na predogled deluje enako
+- `◀ ▶` or `↑ ↓` — pick a game, `ENTER` / `SPACE` — start
+- `1` – `3` — jump straight to a game
+- `ESC` — back to the cabinet select
+- `M` — menu sound, `L` — language
+- clicking or tapping a row, or the preview, does the same
 
-Ko igra teče, gredo vse tipke igri; `ESC` in gumb `◀ IGRE` te vrneta na
-izbiro. Gumbi ob strani: cel zaslon, odpri igro v novem zavihku, odpri
-izvorno kodo igre.
+While a game is running every key belongs to the game; `ESC` and the
+`◀ GAMES` button bring you back. The other buttons are fullscreen, open
+the game in a new tab, and open the game's source.
 
-Neposredna povezava do posamezne igre: `#tower`, `#pinball`, `#batty` —
-npr. https://ulebule.github.io/ulebule-arcade/#batty
+Deep links to a single game: `#tower`, `#pinball`, `#batty` — for example
+https://ulebule.github.io/ulebule-arcade/#batty
 
-## Jeziki
+## Languages
 
-Angleščina (privzeto), slovenščina, nemščina, italijanščina, francoščina.
-Jezik se ob prvem obisku ugane iz nastavitev brskalnika in se potem
-zapomni v `localStorage`.
+English (default), Slovenian, German, Italian, French. The language is
+guessed from the browser on the first visit and then remembered in
+`localStorage`.
 
-## Tehnično
+## Technical
 
-Ena sama samostojna datoteka `index.html` — brez build koraka, brez
-zunanjih zahtevkov, brez odvisnosti. CSS in JS sta inline. Izbirni zaslon
-je `<canvas>` 480×640 s proceduralno narisanimi animiranimi predogledi
-posamezne igre (nič slik).
+A single self-contained `index.html` — no build step, no external
+requests, no dependencies. CSS and JS are inline. The select screen is a
+480×640 `<canvas>` with procedurally drawn animated previews of each game
+(no images at all).
 
-Nov naslov v seznam dodaš tako, da dopolniš polje `GAMES` na vrhu skripte
-(`id`, `repo`, `title`, `year`, `art`, prevodi) in dodaš risalno funkcijo
-za predogled v `ART`.
+To add a game, extend the `GAMES` array at the top of the script (`id`,
+`repo`, `title`, `year`, `art`, translations) and add a preview drawing
+function to `ART`.
 
-Povezave do iger so relativne (`../<repo>/`), ko stran teče na
-`github.io`, sicer absolutne — tako fork deluje brez sprememb.
+Game links are relative (`../<repo>/`) when the page runs on `github.io`
+and absolute otherwise, so a fork works unchanged.
 
-## Licenca
+## Licence
 
 MIT
