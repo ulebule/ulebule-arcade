@@ -14,6 +14,7 @@ One page, one retro arcade cabinet — and every browser game from
 | 3 | BATTY | [batty](https://github.com/ulebule/batty) | Batty (Elite, ZX Spectrum, 1987) |
 | 4 | BOULDER RUSH | [boulder-dash](https://github.com/ulebule/boulder-dash) | Boulder Dash (First Star, 1984) |
 | 5 | FIST OF '87 | [fist-of-87](https://github.com/ulebule/fist-of-87) | the 1987 coin-op brawlers (original game, no port) |
+| 6 | SGT. RUKA | [sgt-ruka](https://github.com/ulebule/sgt-ruka) | the 1985 vertical run-and-guns (original game, no port) |
 
 Pressing START opens the chosen game in its own window, so it gets the whole
 screen, its own history and its own fullscreen button, and none of the keyboard
@@ -25,14 +26,14 @@ place.
 ## Controls
 
 - `◀ ▶` or `↑ ↓` — pick a game, `ENTER` / `SPACE` — open it
-- `1` – `5` — open a game straight away
+- `1` – `6` — open a game straight away
 - `M` — menu sound, `L` — language
 - clicking or tapping a row, or the preview, does the same
 
 If a pop-up blocker swallows the window, the cabinet says so and offers a
 button that opens the game directly from your click.
 
-Deep links preselect a game: `#tower`, `#pinball`, `#batty`, `#boulder`, `#fist` — for
+Deep links preselect a game: `#tower`, `#pinball`, `#batty`, `#boulder`, `#fist`, `#ruka` — for
 example https://ulebule.github.io/ulebule-arcade/#batty leaves BATTY highlighted
 and ready for START. They deliberately do not open the window by themselves,
 because a window opened without a click of its own is exactly what every

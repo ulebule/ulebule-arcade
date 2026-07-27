@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ULEBULE ARCADE — retro games by ulebule</title>
-<meta name="description" content="A retro arcade cabinet holding all of ulebule's browser games — TOWER, ATOMSKI PINBALL, BATTY, BOULDER RUSH and FIST OF '87. Pick a cabinet, insert coin, play.">
+<meta name="description" content="A retro arcade cabinet holding all of ulebule's browser games — TOWER, ATOMSKI PINBALL, BATTY, BOULDER RUSH, FIST OF '87 and SGT. RUKA. Pick a cabinet, insert coin, play.">
 <meta name="theme-color" content="#02030a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -326,7 +326,23 @@ const GAMES=[
          sl:'A D  premik   W  skok   F G H  udarec/brca/special   2 igralca na eni tipkovnici',
          de:'A D  laufen   W  Sprung   F G H  Schlag/Tritt/Spezial   2 Spieler, eine Tastatur',
          it:'A D  muovi   W  salto   F G H  pugno/calcio/speciale   2 giocatori, una tastiera',
-         fr:'A D  bouger   W  saut   F G H  poing/pied/spécial   2 joueurs, un clavier'}}
+         fr:'A D  bouger   W  saut   F G H  poing/pied/spécial   2 joueurs, un clavier'}},
+
+  {id:'ruka', repo:'sgt-ruka', title:'SGT. RUKA', year:'1985',
+   art:'ruka',
+   tribute:{en:'an original vertical run-and-gun',sl:'izvirna navpična strelska igra',
+            de:'ein eigener vertikaler Run-and-Gun',it:'uno sparatutto verticale originale',
+            fr:'un run-and-gun vertical original'},
+   desc:{en:'Eight stages behind enemy lines. Fire in eight directions, blow the cover apart, free the prisoners, take the gate.',
+         sl:'Osem stopenj za sovražnikovo črto. Streljaj v osem smeri, razstreli zaklone, reši ujetnike in zavzemi vrata.',
+         de:'Acht Stufen hinter den feindlichen Linien. In acht Richtungen feuern, Deckung sprengen, Gefangene befreien, das Tor nehmen.',
+         it:'Otto livelli dietro le linee nemiche. Spara in otto direzioni, fai saltare i ripari, libera i prigionieri, prendi il cancello.',
+         fr:'Huit niveaux derrière les lignes. Tire dans huit directions, fais sauter les abris, libère les prisonniers, prends la porte.'},
+   ctrl:{en:'WASD  move & aim   SPACE  fire   G  grenade',
+         sl:'WASD  premik in merjenje   preslednica  strel   G  granata',
+         de:'WASD  laufen & zielen   Leertaste  feuern   G  Granate',
+         it:'WASD  muovi e mira   spazio  fuoco   G  granata',
+         fr:'WASD  bouger et viser   espace  tirer   G  grenade'}}
 ];
 
 /* ---------------- i18n ---------------- */
@@ -869,7 +885,58 @@ function artFist(x0,y0,x1,y1,t){
   }
   X.restore();
 }
-const ART={tower:artTower,pinball:artPinball,batty:artBatty,boulder:artBoulder,fist:artFist};
+function artRuka(x0,y0,x1,y1,t){
+  const w=x1-x0,h=y1-y0,cx=x0+w/2;
+  X.save(); X.beginPath(); X.rect(x0,y0,w,h); X.clip();
+  const scroll=(t*40)%64;
+  X.fillStyle='#2c4a1e'; X.fillRect(x0,y0,w,h);
+  X.fillStyle='#35591f';
+  for(let y=-64+scroll;y<h+64;y+=64) X.fillRect(x0,y0+y,w,32);
+  X.fillStyle='rgba(107,90,52,.5)'; X.fillRect(cx-w*0.14,y0,w*0.28,h);
+  // sandbag walls drifting down
+  X.fillStyle='#7a6a44';
+  for(let i=0;i<5;i++){
+    const bx=x0+((i*97)%Math.max(1,w-70))+8;
+    const by=y0+((i*130+scroll*1.6)%(h+70))-40;
+    for(let k=0;k<3;k++) X.fillRect(bx+k*17,by,16,10);
+  }
+  // trees
+  for(let i=0;i<3;i++){
+    const tx=x0+18+((i*151)%Math.max(1,w-44));
+    const ty=y0+((i*190+scroll*1.6)%(h+80))-40;
+    X.fillStyle='#1c3512'; X.beginPath(); X.arc(tx,ty,15,0,TAU); X.fill();
+  }
+  function man(px,py,col,trim,aimUp){
+    X.fillStyle='rgba(0,0,0,.3)';
+    X.beginPath(); X.ellipse(px,py+9,9,3.5,0,0,TAU); X.fill();
+    X.strokeStyle=col; X.lineWidth=4; X.lineCap='round';
+    X.beginPath(); X.moveTo(px-2,py+1); X.lineTo(px-3,py+9); X.stroke();
+    X.beginPath(); X.moveTo(px+2,py+1); X.lineTo(px+3,py+9); X.stroke();
+    X.fillStyle=col; X.fillRect(px-6,py-8,12,11);
+    X.fillStyle=trim; X.fillRect(px-6,py-2,12,3);
+    X.strokeStyle='#20201c'; X.lineWidth=2.5;
+    X.beginPath(); X.moveTo(px,py-4); X.lineTo(px,py-4+(aimUp?-13:13)); X.stroke();
+    X.fillStyle='#e0b088'; X.beginPath(); X.arc(px,py-11,5,0,TAU); X.fill();
+    X.fillStyle=trim; X.beginPath(); X.arc(px,py-12,5.5,Math.PI,TAU); X.fill();
+  }
+  // enemies coming down, hero at the bottom
+  for(let i=0;i<3;i++){
+    const ex=x0+30+((i*173)%Math.max(1,w-60));
+    const ey=y0+((i*150+scroll*2.2)%(h*0.7))+h*0.06;
+    man(ex,ey,'#6a2a2a','#c86a4a',false);
+  }
+  const hx=cx+Math.sin(t*1.1)*w*0.16, hy=y0+h*0.78;
+  man(hx,hy,'#3f6a2c','#9ad284',true);
+  // muzzle flash and tracer
+  if((t*4)%1<0.5){
+    X.fillStyle='#ffffa0';
+    for(let k=0;k<3;k++) X.fillRect(hx-1.5, hy-24-k*22, 3, 9);
+    X.fillStyle='#ffd23b';
+    X.beginPath(); X.arc(hx,hy-19,4.5,0,TAU); X.fill();
+  }
+  X.restore();
+}
+const ART={tower:artTower,pinball:artPinball,batty:artBatty,boulder:artBoulder,fist:artFist,ruka:artRuka};
 
 /* ---- the preview card ---- */
 function drawCard(t){
