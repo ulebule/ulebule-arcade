@@ -14,26 +14,28 @@ One page, one retro arcade cabinet — and every browser game from
 | 3 | BATTY | [batty](https://github.com/ulebule/batty) | Batty (Elite, ZX Spectrum, 1987) |
 | 4 | BOULDER RUSH | [boulder-dash](https://github.com/ulebule/boulder-dash) | Boulder Dash (First Star, 1984) |
 
-Games load into an `<iframe>` inside the cabinet screen, so you can switch
-between them without leaving the page. Each game stays in its own repo at
-its own GitHub Pages address — this page only gathers them in one place.
-The cabinet screen changes shape to match the game: 3:4 for the upright
-games, 10:7 for BOULDER RUSH.
+Pressing START opens the chosen game in its own window, so it gets the whole
+screen, its own history and its own fullscreen button, and none of the keyboard
+focus problems a framed game has. The window is named, so picking another game
+reuses it rather than leaving a trail of tabs behind. Each game stays in its own
+repo at its own GitHub Pages address — this page only gathers them in one
+place.
 
 ## Controls
 
-- `◀ ▶` or `↑ ↓` — pick a game, `ENTER` / `SPACE` — start
-- `1` – `4` — jump straight to a game
-- `ESC` — back to the cabinet select
+- `◀ ▶` or `↑ ↓` — pick a game, `ENTER` / `SPACE` — open it
+- `1` – `4` — open a game straight away
 - `M` — menu sound, `L` — language
 - clicking or tapping a row, or the preview, does the same
 
-While a game is running every key belongs to the game; `ESC` and the
-`◀ GAMES` button bring you back. The other buttons are fullscreen, open
-the game in a new tab, and open the game's source.
+If a pop-up blocker swallows the window, the cabinet says so and offers a
+button that opens the game directly from your click.
 
-Deep links to a single game: `#tower`, `#pinball`, `#batty`, `#boulder` —
-for example https://ulebule.github.io/ulebule-arcade/#batty
+Deep links preselect a game: `#tower`, `#pinball`, `#batty`, `#boulder` — for
+example https://ulebule.github.io/ulebule-arcade/#batty leaves BATTY highlighted
+and ready for START. They deliberately do not open the window by themselves,
+because a window opened without a click of its own is exactly what every
+pop-up blocker exists to stop.
 
 ## Languages
 
@@ -50,12 +52,9 @@ opens standalone with the cabinet filling the screen, and the manifest
 shortcuts jump straight to a single game.
 
 The service worker caches the cabinet itself, so the launcher opens with no
-connection. Each game repo carries its own worker as well, which is what makes
-a game playable offline *inside* the cabinet: a service worker only controls
-pages under its own path, so `/ulebule-arcade/sw.js` can never cache
-`/batty/`. The upshot is that a game plays offline once it has been opened
-once, and a game you have never opened shows a short notice instead of a blank
-screen.
+connection. Each game repo carries its own worker too, and since a game now runs
+in its own window under its own path, that worker serves it directly — a game
+you have opened once keeps working offline.
 
 Cache names matter here, because caches are shared across the whole origin:
 every worker prefixes its cache with its repo name and deletes only its own
@@ -71,10 +70,9 @@ images at all). The rest of the repo is only there for the PWA:
 and it still works, minus installability.
 
 To add a game, extend the `GAMES` array at the top of the script (`id`,
-`repo`, `title`, `year`, `art`, optional `ar` for a non-3:4 screen, and
-the translations) and add a preview drawing function to `ART`. The select
-screen lays itself out from the number of games, so nothing else needs
-touching.
+`repo`, `title`, `year`, `art` and the translations) and add a preview drawing
+function to `ART`. The select screen lays itself out from the number of games,
+so nothing else needs touching.
 
 Game links are relative (`../<repo>/`) when the page runs on `github.io`
 and absolute otherwise, so a fork works unchanged.

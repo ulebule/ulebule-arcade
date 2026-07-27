@@ -72,13 +72,11 @@
     width:calc(var(--sw) * .038);opacity:.20;
     background:linear-gradient(180deg,#ff5d73 0%,#ffd23b 32%,#8ef0a0 58%,#7fa0ff 84%,#9f6bff 100%);}
   #bezel::before{left:0;} #bezel::after{right:0;}
-  #cab.wide{--sw:min(74vw, 74vh);}
   #screenbox{position:relative;width:var(--sw);aspect-ratio:3/4;
     background:#02030a;border-radius:10px;overflow:hidden;
     box-shadow:inset 0 0 0 3px #05070f, inset 0 0 40px rgba(0,0,0,.9),
                0 0 44px rgba(60,120,255,.28);}
   #c{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;display:block;}
-  #gf{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#02030a;}
   #crt{position:absolute;inset:0;pointer-events:none;z-index:6;
     background:
       repeating-linear-gradient(0deg,rgba(0,0,0,.26) 0,rgba(0,0,0,.26) 1px,
@@ -143,10 +141,6 @@
     box-shadow:0 0 10px rgba(255,210,59,.5);}
   #coin{font-size:calc(var(--sw) * .024);color:#5f7ad0;letter-spacing:.14em;white-space:nowrap;}
 
-  /* ---------- fullscreen ---------- */
-  #screenbox:fullscreen,#screenbox:-webkit-full-screen{width:100vw;height:100vh;
-    aspect-ratio:auto;border-radius:0;box-shadow:none;}
-
   /* ---------- footer ---------- */
   #foot{position:fixed;left:0;right:0;bottom:2px;text-align:center;
     font-size:11px;color:#3a4a99;letter-spacing:.10em;pointer-events:none;z-index:2;}
@@ -156,7 +150,6 @@
   /* ---------- narrow screens: strip the cabinet down ---------- */
   @media (max-width:640px){
     #cab{--sw:min(89vw, 45vh);width:calc(var(--sw) * 1.10);}
-    #cab.wide{--sw:min(89vw, 62vh);}
     #stick{display:none;}
     #panel{flex-direction:column;gap:calc(var(--sw) * .028);}
     #side{align-items:center;}
@@ -164,14 +157,12 @@
   }
   @media (max-height:600px) and (min-width:641px){
     #cab{--sw:min(44vw, 50vh);}
-    #cab.wide{--sw:min(58vw, 62vh);}
     #marquee{height:calc(var(--sw) * .16);}
     #floor{display:none;}
     #foot{display:none;}
   }
   @media (max-height:600px) and (max-width:640px){
     #cab{--sw:min(52vw, 66vh);width:calc(var(--sw) * 1.10);}
-    #cab.wide{--sw:min(72vw, 74vh);}
     #marquee{height:calc(var(--sw) * .16);}
     #floor{display:none;}
   }
@@ -194,14 +185,12 @@
   }
   @media (pointer:coarse) and (max-width:640px){
     #cab{--sw:min(89vw, 39vh);width:calc(var(--sw) * 1.10);}
-    #cab.wide{--sw:min(89vw, 56vh);}
   }
   /* Phone held sideways: too short for a 3:4 cabinet plus finger-sized
      controls stacked under it, so widen the body and let the panel spread
      out along the extra width instead of growing downwards. */
   @media (pointer:coarse) and (max-height:600px){
     #cab{--sw:min(40vw, 35vh);width:min(94vw, calc(var(--sw) * 1.30 + 300px));}
-    #cab.wide{--sw:min(56vw, 50vh);width:min(94vw, calc(var(--sw) * 1.30 + 220px));}
     #marquee{height:calc(var(--sw) * .20);}
     #stick{display:none;}
     .ab{min-height:44px;padding:0 12px;font-size:13px;}
@@ -225,7 +214,6 @@
     <div id="bezel">
       <div id="screenbox">
         <canvas id="c" width="480" height="640"></canvas>
-        <iframe id="gf" title="game" allow="autoplay; fullscreen"></iframe>
         <div id="crt"></div>
         <div id="glare"></div>
         <div id="offline">
@@ -255,7 +243,7 @@
 "use strict";
 /* ============================================================
    ULEBULE ARCADE — launcher for the retro games at github.com/ulebule
-   Single self-contained file. Games run in an iframe inside the cabinet.
+   Single self-contained file. Picking a game opens it in its own window.
    ============================================================ */
 
 /* ---------------- games ---------------- */
@@ -309,7 +297,7 @@ const GAMES=[
          fr:'← →  raquette   espace / ↑  lancer et laser'}},
 
   {id:'boulder', repo:'boulder-dash', title:'BOULDER RUSH', year:'1984',
-   art:'boulder', ar:'10/7',
+   art:'boulder',
    tribute:{en:'tribute to Boulder Dash (First Star, 1984)',sl:'poklon igri Boulder Dash (First Star, 1984)',
             de:'Hommage an Boulder Dash (First Star, 1984)',it:'omaggio a Boulder Dash (First Star, 1984)',
             fr:'hommage à Boulder Dash (First Star, 1984)'},
@@ -328,45 +316,45 @@ const GAMES=[
 /* ---------------- i18n ---------------- */
 const LANGS=['en','sl','de','it','fr'];
 const STR={
-  en:{install:'INSTALL',offh:'NOT SAVED OFFLINE',offb:'This cabinet is stored on your device, but this game is not — open it once with a connection and it will be here next time.',retry:'TRY AGAIN',
+  en:{install:'INSTALL',blockh:'WINDOW BLOCKED',blockb:'The browser stopped the game window from opening. Use the button below, or allow pop-ups for this page.',open:'OPEN THE GAME',newwin:'the game opens in its own window',
       sub:'RETRO GAMES',select:'SELECT A GAME',insert:'◎ INSERT COIN',
       press:'PRESS START',tap:'TAP A CABINET TO PLAY',
       nav:'◀ ▶ / ↑ ↓  select     ENTER  start',
-      start:'START',menu:'◀ GAMES',full:'FULLSCREEN',tab:'OPEN IN NEW TAB',
-      src:'SOURCE',prev:'◀',next:'▶',loading:'LOADING…',
-      playing:'NOW PLAYING',games:'GAMES',foot:'all games are single-file HTML, hosted on GitHub Pages',
+      start:'START',
+      prev:'◀',next:'▶',loading:'LOADING…',
+      games:'GAMES',foot:'all games are single-file HTML, hosted on GitHub Pages',
       hintplay:'keyboard goes to the game — click the screen if it stops responding'},
-  sl:{install:'NAMESTI',offh:'NI SHRANJENA ZA OFFLINE',offb:'Avtomat je shranjen na tvoji napravi, ta igra pa ne — odpri jo enkrat s povezavo in naslednjič bo tu.',retry:'POSKUSI ZNOVA',
+  sl:{install:'NAMESTI',blockh:'OKNO JE BLOKIRANO',blockb:'Brskalnik je preprečil odprtje okna z igro. Uporabi spodnji gumb ali dovoli pojavna okna za to stran.',open:'ODPRI IGRO',newwin:'igra se odpre v svojem oknu',
       sub:'RETRO IGRE',select:'IZBERI IGRO',insert:'◎ VRZI KOVANEC',
       press:'PRITISNI START',tap:'TAPNI AVTOMAT ZA IGRO',
       nav:'◀ ▶ / ↑ ↓  izbira     ENTER  začni',
-      start:'START',menu:'◀ IGRE',full:'CEL ZASLON',tab:'ODPRI V NOVEM ZAVIHKU',
-      src:'KODA',prev:'◀',next:'▶',loading:'NALAGAM…',
-      playing:'IGRAŠ',games:'IGRE',foot:'vse igre so ena sama HTML datoteka na GitHub Pages',
+      start:'START',
+      prev:'◀',next:'▶',loading:'NALAGAM…',
+      games:'IGRE',foot:'vse igre so ena sama HTML datoteka na GitHub Pages',
       hintplay:'tipkovnica gre v igro — klikni na zaslon, če se neha odzivati'},
-  de:{install:'INSTALLIEREN',offh:'NICHT OFFLINE GESPEICHERT',offb:'Der Automat liegt auf deinem Gerät, dieses Spiel noch nicht — öffne es einmal mit Verbindung, dann ist es beim nächsten Mal da.',retry:'NOCHMAL',
+  de:{install:'INSTALLIEREN',blockh:'FENSTER BLOCKIERT',blockb:'Der Browser hat das Spielfenster blockiert. Nutze den Knopf unten oder erlaube Pop-ups für diese Seite.',open:'SPIEL ÖFFNEN',newwin:'das Spiel öffnet sich in einem eigenen Fenster',
       sub:'RETRO-SPIELE',select:'SPIEL WÄHLEN',insert:'◎ MÜNZE EINWERFEN',
       press:'START DRÜCKEN',tap:'AUTOMAT ANTIPPEN ZUM SPIELEN',
       nav:'◀ ▶ / ↑ ↓  wählen     ENTER  starten',
-      start:'START',menu:'◀ SPIELE',full:'VOLLBILD',tab:'IN NEUEM TAB ÖFFNEN',
-      src:'QUELLCODE',prev:'◀',next:'▶',loading:'LÄDT…',
-      playing:'LÄUFT',games:'SPIELE',foot:'alle Spiele sind eine einzige HTML-Datei auf GitHub Pages',
+      start:'START',
+      prev:'◀',next:'▶',loading:'LÄDT…',
+      games:'SPIELE',foot:'alle Spiele sind eine einzige HTML-Datei auf GitHub Pages',
       hintplay:'Tastatur geht ins Spiel — klicke den Bildschirm an, falls es nicht reagiert'},
-  it:{install:'INSTALLA',offh:'NON SALVATO OFFLINE',offb:'Il cabinato è salvato sul tuo dispositivo, questo gioco no — aprilo una volta con la connessione e la prossima volta sarà qui.',retry:'RIPROVA',
+  it:{install:'INSTALLA',blockh:'FINESTRA BLOCCATA',blockb:'Il browser ha impedito l’apertura della finestra di gioco. Usa il pulsante qui sotto o consenti i pop-up per questa pagina.',open:'APRI IL GIOCO',newwin:'il gioco si apre in una finestra propria',
       sub:'GIOCHI RETRO',select:'SCEGLI UN GIOCO',insert:'◎ INSERISCI MONETA',
       press:'PREMI START',tap:'TOCCA UN CABINATO PER GIOCARE',
       nav:'◀ ▶ / ↑ ↓  scegli     ENTER  avvia',
-      start:'START',menu:'◀ GIOCHI',full:'SCHERMO INTERO',tab:'APRI IN UNA NUOVA SCHEDA',
-      src:'CODICE',prev:'◀',next:'▶',loading:'CARICO…',
-      playing:'IN GIOCO',games:'GIOCHI',foot:'tutti i giochi sono un unico file HTML su GitHub Pages',
+      start:'START',
+      prev:'◀',next:'▶',loading:'CARICO…',
+      games:'GIOCHI',foot:'tutti i giochi sono un unico file HTML su GitHub Pages',
       hintplay:'la tastiera va al gioco — clicca lo schermo se non risponde'},
-  fr:{install:'INSTALLER',offh:'PAS ENREGISTRÉ HORS LIGNE',offb:'La borne est enregistrée sur ton appareil, pas encore ce jeu — ouvre-le une fois connecté et il sera là la prochaine fois.',retry:'RÉESSAYER',
+  fr:{install:'INSTALLER',blockh:'FENÊTRE BLOQUÉE',blockb:'Le navigateur a empêché la fenêtre du jeu de s’ouvrir. Utilise le bouton ci-dessous ou autorise les pop-ups pour cette page.',open:'OUVRIR LE JEU',newwin:'le jeu s’ouvre dans sa propre fenêtre',
       sub:'JEUX RÉTRO',select:'CHOISIS UN JEU',insert:'◎ INSÉRER UNE PIÈCE',
       press:'APPUIE SUR START',tap:'TOUCHE UNE BORNE POUR JOUER',
       nav:'◀ ▶ / ↑ ↓  choisir     ENTER  démarrer',
-      start:'START',menu:'◀ JEUX',full:'PLEIN ÉCRAN',tab:'OUVRIR DANS UN NOUVEL ONGLET',
-      src:'CODE',prev:'◀',next:'▶',loading:'CHARGEMENT…',
-      playing:'EN COURS',games:'JEUX',foot:'tous les jeux tiennent dans un seul fichier HTML sur GitHub Pages',
+      start:'START',
+      prev:'◀',next:'▶',loading:'CHARGEMENT…',
+      games:'JEUX',foot:'tous les jeux tiennent dans un seul fichier HTML sur GitHub Pages',
       hintplay:'le clavier va au jeu — clique sur l’écran s’il ne répond plus'}
 };
 function safeLS(k,v){
@@ -413,8 +401,9 @@ const sfx={
 /* ---------------- state ---------------- */
 const cv=document.getElementById('c'), X=cv.getContext('2d');
 const W=480,H=640,TAU=Math.PI*2;
-let sel=0, mode='menu', perf=0, last=0, coinT=0;
-const gf=document.getElementById('gf');
+let sel=0, perf=0, last=0, coinT=0;
+const GAME_WINDOW='ulebuleArcadeGame';   // one reused window, so games don't pile up tabs
+let pendingURL=null;
 
 function gameURL(g){
   // On github.io a sibling path keeps forks working; elsewhere fall back to the canonical host.
@@ -427,7 +416,7 @@ function repoURL(g){ return 'https://github.com/ulebule/'+g.repo; }
 const mqmain=document.getElementById('mqmain'), mqsub=document.getElementById('mqsub');
 const btns=document.getElementById('btns'), langsEl=document.getElementById('langs');
 const coinEl=document.getElementById('coin'), footnote=document.getElementById('footnote');
-const cabEl=document.getElementById('cab'), screenbox=document.getElementById('screenbox');
+const cabEl=document.getElementById('cab');
 
 function mkBtn(label,cls,fn,title){
   const b=document.createElement('button');
@@ -449,45 +438,23 @@ function setLang(l){
   if(!LANGS.includes(l)) return;
   lang=l; safeLS('arcade_lang',l); document.documentElement.lang=l;
   buildLangs(); buildChrome(); sfx.move();
-  if(offEl&&offEl.classList.contains('on')) showOffline(true);
+  if(offEl&&offEl.classList.contains('on')) showNotice(true);
 }
 function buildChrome(){
   btns.innerHTML='';
-  if(mode==='menu'){
-    const g=GAMES[sel];
-    mqmain.textContent=g.title;
-    mqsub.textContent=G(g,'tribute');
-    btns.appendChild(mkBtn('◀','round',()=>move(-1)));
-    btns.appendChild(mkBtn(T('start'),'start',()=>launch(sel)));
-    btns.appendChild(mkBtn('▶','round',()=>move(1)));
-    btns.appendChild(mkBtn(muted?'♪ OFF':'♪ ON','',toggleMute));
-    if(deferredPrompt) btns.appendChild(mkBtn('⤓ '+T('install'),'',doInstall,T('install')));
-    coinEl.textContent=T('insert');
-  }else{
-    const g=GAMES[sel];
-    mqmain.textContent=g.title;
-    mqsub.textContent=G(g,'tribute');
-    btns.appendChild(mkBtn(T('menu'),'',toMenu,T('menu')));
-    btns.appendChild(mkBtn('⛶','round start',goFullscreen,T('full')));
-    btns.appendChild(mkBtn('↗','round',()=>window.open(gameURL(GAMES[sel]),'_blank','noopener'),T('tab')));
-    btns.appendChild(mkBtn('{ }','round',()=>window.open(repoURL(GAMES[sel]),'_blank','noopener'),T('src')));
-    coinEl.textContent=T('playing')+': '+g.title;
-  }
+  const g=GAMES[sel];
+  mqmain.textContent=g.title;
+  mqsub.textContent=G(g,'tribute');
+  btns.appendChild(mkBtn('◀','round',()=>move(-1)));
+  btns.appendChild(mkBtn(T('start'),'start',()=>launch(sel)));
+  btns.appendChild(mkBtn('▶','round',()=>move(1)));
+  btns.appendChild(mkBtn(muted?'♪ OFF':'♪ ON','',toggleMute));
+  if(deferredPrompt) btns.appendChild(mkBtn('⤓ '+T('install'),'',doInstall,T('install')));
+  coinEl.textContent=T('insert');
   footnote.textContent=T('foot');
 }
 function toggleMute(){
   muted=!muted; safeLS('arcade_mute',muted?'1':'0'); buildChrome(); if(!muted) sfx.move();
-}
-function goFullscreen(){
-  const el=screenbox;
-  try{
-    if(document.fullscreenElement||document.webkitFullscreenElement){
-      (document.exitFullscreen||document.webkitExitFullscreen).call(document);
-    }else{
-      (el.requestFullscreen||el.webkitRequestFullscreen).call(el);
-    }
-  }catch(e){}
-  setTimeout(focusGame,300);
 }
 
 /* ---------------- joystick wiggle ---------------- */
@@ -500,81 +467,39 @@ function tilt(dir){
 
 /* ---------------- navigation ---------------- */
 function move(d){
-  if(mode!=='menu') return;
   sel=(sel+d+GAMES.length)%GAMES.length;
   sfx.move(); tilt(d); coinT=0; buildChrome();
 }
 function selectOnly(i){ if(i===sel) return; sel=i; sfx.move(); buildChrome(); }
 function launch(i){
-  if(mode==='play') return;
   sel=((i%GAMES.length)+GAMES.length)%GAMES.length;
-  launchNow(sel);
+  buildChrome();
+  openGame(GAMES[sel]);
 }
-function launchNow(i){
-  sel=((i%GAMES.length)+GAMES.length)%GAMES.length;
-  const g=GAMES[sel];
+/* Games run in their own window rather than in a frame: full screen estate,
+   their own history and fullscreen button, and no keyboard focus tug-of-war.
+   The window is named, so launching a second game reuses it instead of
+   leaving a trail of tabs. No 'noopener' here — that would return null and
+   cost us the focus() call, and everything we open is our own page. */
+function openGame(g){
+  const url=gameURL(g);
   sfx.coin();
-  mode='play';
-  screenbox.style.aspectRatio=g.ar||'3/4';
-  cabEl.classList.toggle('wide',(g.ar||'3/4')!=='3/4');
-  gf.src=gameURL(g);
-  gf.style.display='block';
-  cv.style.display='none';
-  buildChrome();
-  showOffline(false);
-  clearTimeout(loadGuard);
-  loadGuard=setTimeout(verifyGameLoaded,4000);
-  try{ location.hash=g.id; }catch(e){}
-  setTimeout(focusGame,400);
+  let w=null;
+  try{ w=window.open(url,GAME_WINDOW); }catch(e){}
+  if(w){
+    try{ w.focus(); }catch(e){}
+    showNotice(false);
+    pendingURL=null;
+    return true;
+  }
+  pendingURL=url;          // a pop-up blocker ate it; offer a direct click
+  showNotice(true);
+  return false;
 }
-function toMenu(){
-  if(mode!=='play') return;
-  sfx.back();
-  mode='menu';
-  screenbox.style.aspectRatio='3/4';
-  cabEl.classList.remove('wide');
-  gf.style.display='none';
-  gf.src='about:blank';
-  cv.style.display='block';
-  clearTimeout(loadGuard);
-  showOffline(false);
-  buildChrome();
-  try{ if(location.hash) history.replaceState(null,'',location.pathname+location.search); }catch(e){}
-}
-function focusGame(){
-  try{ gf.contentWindow.focus(); }catch(e){}
-  try{ gf.focus(); }catch(e){}
-  // Same-origin on Pages: let ESC inside the game come back to the cabinet select.
-  try{
-    const d=gf.contentDocument;
-    if(d&&!d.__arcadeHooked){
-      d.__arcadeHooked=true;
-      d.addEventListener('keydown',e=>{ if(e.key==='Escape') toMenu(); });
-    }
-  }catch(e){}
-}
-let loadGuard=0;
-function verifyGameLoaded(){
-  if(mode!=='play') return;
-  let ok=false;
-  try{
-    const d=gf.contentDocument;
-    ok=!!(d && (d.querySelector('canvas') || d.querySelector('#stage')));
-  }catch(e){ ok=true; }          // cross-origin frame: cannot look, assume it loaded
-  if(!ok) showOffline(true);
-}
-gf.addEventListener('load',()=>{
-  focusGame();
-  clearTimeout(loadGuard);
-  if(mode==='play') loadGuard=setTimeout(verifyGameLoaded,400);
-});
 
 /* ---------------- keyboard ---------------- */
 addEventListener('keydown',e=>{
-  if(mode==='play'){
-    if(e.key==='Escape'){ e.preventDefault(); toMenu(); }
-    return; // everything else belongs to the game
-  }
+  if(noticeOpen()){ if(e.key==='Escape'){ e.preventDefault(); showNotice(false); } return; }
   ac();
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' ','Enter'].includes(e.key)) e.preventDefault();
   if(e.repeat) return;
@@ -596,14 +521,13 @@ function canvasPoint(ev){
 }
 let hover=-1;
 cv.addEventListener('mousemove',ev=>{
-  if(mode!=='menu') return;
   const p=canvasPoint(ev); hover=-1;
   for(const r of rows) if(p.y>=r.y0&&p.y<=r.y1) hover=r.i;
   cv.style.cursor=(hover>=0||p.y<CARD_Y1)?'pointer':'default';
 });
 cv.addEventListener('mouseleave',()=>{hover=-1;});
 cv.addEventListener('click',ev=>{
-  if(mode!=='menu') return;
+  if(noticeOpen()) return;
   ac();
   const p=canvasPoint(ev);
   for(const r of rows){
@@ -612,7 +536,7 @@ cv.addEventListener('click',ev=>{
   if(p.y<CARD_Y1) launch(sel);            // tapping the preview starts it
 });
 cv.addEventListener('touchstart',ev=>{
-  if(mode!=='menu') return;
+  if(noticeOpen()) return;
   ev.preventDefault(); ac();
   const p=canvasPoint(ev);
   for(const r of rows){
@@ -628,7 +552,7 @@ const CARD_X0=34, CARD_Y0=92, CARD_X1=446, PLATE=44;
 const ROW_H=GAMES.length>=5?36:(GAMES.length===4?40:42);
 const LIST_Y0=500-GAMES.length*ROW_H+ROW_H/2;      // list block ends at y=500
 const CARD_Y1=LIST_Y0-ROW_H/2-12;
-const RULE_Y=516, DESC_Y=534, PRESS_Y=592, NAV_Y=618;
+const RULE_Y=516, DESC_Y=534, PRESS_Y=588, NAV_Y=612, WIN_Y=630;
 function text(t,x,y,size,col,align,weight){
   X.fillStyle=col; X.textAlign=align||'center'; X.textBaseline='middle';
   X.font=(weight||'bold')+' '+size+'px "Courier New",monospace';
@@ -938,6 +862,7 @@ function drawFoot(){
 
   if(Math.floor(perf/450)%2===0) text(T('press'),W/2,PRESS_Y,15,'#ffd23b','center');
   text(T('nav'),W/2,NAV_Y,9.5,'#5f7ad0','center','normal');
+  text('↗ '+T('newwin'),W/2,WIN_Y,9,'#3a4a99','center','normal');
 }
 
 /* ---------------- loop ---------------- */
@@ -947,7 +872,6 @@ function frame(ts){
   let dt=(ts-last)/1000; last=ts; perf=ts;
   if(dt>0.05) dt=0.05;
   if(tiltT>0){ tiltT-=dt; if(tiltT<=0) cabEl.classList.remove('tiltL','tiltR'); }
-  if(mode!=='menu') return;
   const t=ts/1000;
   drawBg(dt);
   drawHeader();
@@ -961,14 +885,20 @@ const offEl=document.getElementById('offline'),
       offhEl=document.getElementById('offh'),
       offbEl=document.getElementById('offb'),
       offbtn=document.getElementById('offbtn');
-function showOffline(on){
-  offhEl.textContent=T('offh'); offbEl.textContent=T('offb'); offbtn.textContent=T('retry');
+function noticeOpen(){ return offEl.classList.contains('on'); }
+function showNotice(on){
+  offhEl.textContent=T('blockh'); offbEl.textContent=T('blockb'); offbtn.textContent=T('open');
   offEl.classList.toggle('on',!!on);
 }
-offbtn.addEventListener('click',e=>{ e.preventDefault(); showOffline(false); launchNow(sel); });
-addEventListener('online',()=>{ if(offEl.classList.contains('on')) showOffline(false); });
-/* Going offline is not itself a failure: a game cached by its own service
-   worker keeps playing. verifyGameLoaded() decides, after the frame tried. */
+offbtn.addEventListener('click',e=>{
+  e.preventDefault();
+  const url=pendingURL||gameURL(GAMES[sel]);
+  showNotice(false);
+  let w=null;
+  try{ w=window.open(url,GAME_WINDOW); }catch(e2){}
+  if(w){ try{ w.focus(); }catch(e2){} }
+  else { location.href=url; }     // last resort: this tab, straight from a click
+});
 
 /* ---------------- install prompt ---------------- */
 let deferredPrompt=null;
@@ -990,24 +920,24 @@ if('serviceWorker' in navigator && swOK){
 function boot(){
   document.documentElement.lang=lang;
   buildLangs(); buildChrome();
-  const h=(location.hash||'').replace('#','').toLowerCase();
-  if(h){
-    const i=GAMES.findIndex(g=>g.id===h||g.repo===h);
-    if(i>=0){ sel=i; setTimeout(()=>launch(i),120); }
-  }
+  selectFromHash();
   requestAnimationFrame(frame);
 }
-addEventListener('hashchange',()=>{
+/* A deep link only preselects the game. Opening a window without a click of
+   its own would be swallowed by every pop-up blocker there is, so the last
+   step stays with the player: one press of START. */
+function selectFromHash(){
   const h=(location.hash||'').replace('#','').toLowerCase();
-  if(!h){ if(mode==='play') toMenu(); return; }
+  if(!h) return;
   const i=GAMES.findIndex(g=>g.id===h||g.repo===h);
-  if(i>=0 && (mode!=='play'||i!==sel)) launch(i);
-});
+  if(i>=0 && i!==sel){ sel=i; buildChrome(); }
+}
+addEventListener('hashchange',selectFromHash);
 boot();
 
 /* test hook */
-window.__arcade={GAMES,launch,toMenu,move,setLang,gameURL,showOffline,
-  get mode(){return mode;}, get sel(){return sel;}, get lang(){return lang;}};
+window.__arcade={GAMES,launch,openGame,move,setLang,gameURL,showNotice,
+  get sel(){return sel;}, get lang(){return lang;}, get noticeOpen(){return noticeOpen();}};
 </script>
 </body>
 </html>
