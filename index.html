@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ULEBULE ARCADE — retro games by ulebule</title>
-<meta name="description" content="A retro arcade cabinet holding all of ulebule's browser games — TOWER, ATOMSKI PINBALL, BATTY, BOULDER RUSH, FIST OF '87 and SGT. RUKA. Pick a cabinet, insert coin, play.">
+<meta name="description" content="A retro arcade cabinet holding all of ulebule's browser games — TOWER, ATOMSKI PINBALL, BATTY, BOULDER RUSH, FIST OF '87, SGT. RUKA and COŠTA DEL SOL. Pick a cabinet, insert coin, play.">
 <meta name="theme-color" content="#02030a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -342,7 +342,23 @@ const GAMES=[
          sl:'WASD  premik in merjenje   preslednica  strel   G  granata',
          de:'WASD  laufen & zielen   Leertaste  feuern   G  Granate',
          it:'WASD  muovi e mira   spazio  fuoco   G  granata',
-         fr:'WASD  bouger et viser   espace  tirer   G  grenade'}}
+         fr:'WASD  bouger et viser   espace  tirer   G  grenade'}},
+
+  {id:'costa', repo:'costa-del-sol', title:'COŠTA DEL SOL', year:'1986',
+   art:'costa',
+   tribute:{en:'an original sunset driving game',sl:'izvirna vožnja v sončni zahod',
+            de:'ein eigenes Fahrspiel im Sonnenuntergang',it:'una guida originale nel tramonto',
+            fr:'une conduite originale au coucher du soleil'},
+   desc:{en:'Fifteen roads, five endings. The road forks at every checkpoint — the side you are on decides where you go next.',
+         sl:'Petnajst cest, pet ciljev. Cesta se razcepi pri vsaki kontrolni točki — stran, na kateri si, odloči, kam greš naprej.',
+         de:'Fünfzehn Straßen, fünf Ziele. An jedem Kontrollpunkt gabelt sich die Straße — deine Seite entscheidet den Weg.',
+         it:'Quindici strade, cinque finali. La strada si biforca a ogni checkpoint — il lato su cui sei decide dove vai.',
+         fr:'Quinze routes, cinq fins. La route bifurque à chaque point de contrôle — ton côté décide de la suite.'},
+   ctrl:{en:'← →  steer   ↑  gas   ↓  brake   SPACE  gear',
+         sl:'← →  krmilo   ↑  plin   ↓  zavora   preslednica  prestava',
+         de:'← →  lenken   ↑  Gas   ↓  Bremse   Leertaste  Gang',
+         it:'← →  sterzo   ↑  gas   ↓  freno   spazio  marcia',
+         fr:'← →  direction   ↑  gaz   ↓  frein   espace  vitesse'}}
 ];
 
 /* ---------------- i18n ---------------- */
@@ -936,7 +952,62 @@ function artRuka(x0,y0,x1,y1,t){
   }
   X.restore();
 }
-const ART={tower:artTower,pinball:artPinball,batty:artBatty,boulder:artBoulder,fist:artFist,ruka:artRuka};
+function artCosta(x0,y0,x1,y1,t){
+  const w=x1-x0,h=y1-y0,cx=x0+w/2;
+  X.save(); X.beginPath(); X.rect(x0,y0,w,h); X.clip();
+  const hz=y0+h*0.52;
+  const g=X.createLinearGradient(0,y0,0,hz);
+  g.addColorStop(0,'#2a1050'); g.addColorStop(0.55,'#c04a5a'); g.addColorStop(1,'#ff9a4a');
+  X.fillStyle=g; X.fillRect(x0,y0,w,hz-y0);
+  X.fillStyle='#ffe9a8';
+  X.beginPath(); X.arc(cx,hz-h*0.10,h*0.20,0,TAU); X.fill();
+  X.fillStyle='rgba(255,120,90,.85)';
+  for(let i=0;i<5;i++) X.fillRect(cx-h*0.22,hz-h*0.16+i*h*0.055,h*0.44,h*0.022);
+  X.fillStyle='#c8a060'; X.fillRect(x0,hz,w,y1-hz);
+  const sway=Math.sin(t*0.8)*w*0.03;
+  X.fillStyle='#66666e';
+  X.beginPath();
+  X.moveTo(cx-w*0.035+sway,hz); X.lineTo(cx+w*0.035+sway,hz);
+  X.lineTo(x1+w*0.22,y1); X.lineTo(x0-w*0.22,y1); X.closePath(); X.fill();
+  X.fillStyle='#d04030';
+  X.beginPath(); X.moveTo(cx-w*0.045+sway,hz); X.lineTo(cx-w*0.035+sway,hz);
+  X.lineTo(x0-w*0.22,y1); X.lineTo(x0-w*0.34,y1); X.closePath(); X.fill();
+  X.beginPath(); X.moveTo(cx+w*0.035+sway,hz); X.lineTo(cx+w*0.045+sway,hz);
+  X.lineTo(x1+w*0.34,y1); X.lineTo(x1+w*0.22,y1); X.closePath(); X.fill();
+  const roll=(t*90)%60;
+  X.fillStyle='#ffffff';
+  for(let i=0;i<4;i++){
+    const k=(i*60+roll)/240;
+    const yy=hz+(y1-hz)*k*k*1.15;
+    if(yy>y1||yy<hz) continue;
+    const ww=w*0.004+w*0.020*k*k;
+    X.fillRect(cx+sway*(1-k)-ww, yy, ww*2, h*0.012+h*0.045*k*k);
+  }
+  for(const [px,ph,d] of [[x0+w*0.12,h*0.26,0],[x1-w*0.11,h*0.30,1]]){
+    X.fillStyle='#6a4a28'; X.fillRect(px-w*0.010,hz-ph,w*0.020,ph);
+    X.fillStyle='#2f7a3a';
+    for(const a of [-1,-0.4,0.4,1]){
+      X.beginPath(); X.moveTo(px,hz-ph);
+      X.lineTo(px+a*w*0.075,hz-ph-h*0.035); X.lineTo(px+a*w*0.05,hz-ph+h*0.015);
+      X.closePath(); X.fill();
+    }
+  }
+  const cw=w*0.30, ch=cw*0.40, cyy=y1-h*0.13, ccx=cx+sway*0.5;
+  X.fillStyle='rgba(0,0,0,.35)';
+  X.beginPath(); X.ellipse(ccx,cyy+ch*0.46,cw*0.55,ch*0.20,0,0,TAU); X.fill();
+  X.fillStyle='#d02a2a'; X.fillRect(ccx-cw/2,cyy-ch*0.35,cw,ch*0.72);
+  X.fillStyle='#8a1414'; X.fillRect(ccx-cw*0.30,cyy-ch*0.78,cw*0.60,ch*0.46);
+  X.fillStyle='#2a2a36'; X.fillRect(ccx-cw*0.26,cyy-ch*0.72,cw*0.52,ch*0.32);
+  X.fillStyle='#181820';
+  X.fillRect(ccx-cw*0.58,cyy-ch*0.02,cw*0.14,ch*0.5);
+  X.fillRect(ccx+cw*0.44,cyy-ch*0.02,cw*0.14,ch*0.5);
+  X.fillStyle='#ff8a4a';
+  X.fillRect(ccx-cw*0.44,cyy-ch*0.18,cw*0.15,ch*0.16);
+  X.fillRect(ccx+cw*0.29,cyy-ch*0.18,cw*0.15,ch*0.16);
+  X.restore();
+}
+const ART={tower:artTower,pinball:artPinball,batty:artBatty,boulder:artBoulder,
+           fist:artFist,ruka:artRuka,costa:artCosta};
 
 /* ---- the preview card ---- */
 function drawCard(t){
