@@ -175,6 +175,40 @@
     #marquee{height:calc(var(--sw) * .16);}
     #floor{display:none;}
   }
+
+  /* ---- touch targets -------------------------------------------------
+     The panel is sized from --sw, which on a phone leaves the language
+     chips around 22x19px — far under the ~44px a fingertip needs. On a
+     coarse pointer give every control a real minimum size, and take the
+     extra panel height back out of the screen so the cabinet still fits. */
+  @media (pointer:coarse){
+    #room{padding:6px;}
+    #cab{--sw:min(60vw, 38vh);}
+    #langs{gap:6px;}
+    .lg{min-width:46px;min-height:46px;padding:0;font-size:15px;
+        display:inline-flex;align-items:center;justify-content:center;}
+    .ab{min-height:48px;padding:0 18px;font-size:15px;}
+    .ab.round{width:54px;height:54px;font-size:24px;}
+    #btns{gap:10px;}
+    #coin{font-size:12px;}
+  }
+  @media (pointer:coarse) and (max-width:640px){
+    #cab{--sw:min(89vw, 39vh);width:calc(var(--sw) * 1.10);}
+    #cab.wide{--sw:min(89vw, 56vh);}
+  }
+  /* Phone held sideways: too short for a 3:4 cabinet plus finger-sized
+     controls stacked under it, so widen the body and let the panel spread
+     out along the extra width instead of growing downwards. */
+  @media (pointer:coarse) and (max-height:600px){
+    #cab{--sw:min(40vw, 35vh);width:min(94vw, calc(var(--sw) * 1.30 + 300px));}
+    #cab.wide{--sw:min(56vw, 50vh);width:min(94vw, calc(var(--sw) * 1.30 + 220px));}
+    #marquee{height:calc(var(--sw) * .20);}
+    #stick{display:none;}
+    .ab{min-height:44px;padding:0 12px;font-size:13px;}
+    .lg{min-width:40px;min-height:40px;font-size:13px;}
+    .ab.round{width:44px;height:44px;font-size:19px;}
+    #coin{font-size:11px;}
+  }
 </style>
 </head>
 <body>
