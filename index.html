@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ULEBULE ARCADE — retro games by ulebule</title>
-<meta name="description" content="A retro arcade cabinet holding all of ulebule's browser games — TOWER, ATOMSKI PINBALL and BATTY. Pick a cabinet, insert coin, play.">
+<meta name="description" content="A retro arcade cabinet holding all of ulebule's browser games — TOWER, ATOMSKI PINBALL, BATTY and BOULDER RUSH. Pick a cabinet, insert coin, play.">
 <meta name="theme-color" content="#02030a">
 <meta property="og:title" content="ULEBULE ARCADE">
 <meta property="og:description" content="Retro browser games in one arcade cabinet.">
@@ -65,6 +65,7 @@
     width:calc(var(--sw) * .038);opacity:.20;
     background:linear-gradient(180deg,#ff5d73 0%,#ffd23b 32%,#8ef0a0 58%,#7fa0ff 84%,#9f6bff 100%);}
   #bezel::before{left:0;} #bezel::after{right:0;}
+  #cab.wide{--sw:min(74vw, 74vh);}
   #screenbox{position:relative;width:var(--sw);aspect-ratio:3/4;
     background:#02030a;border-radius:10px;overflow:hidden;
     box-shadow:inset 0 0 0 3px #05070f, inset 0 0 40px rgba(0,0,0,.9),
@@ -140,6 +141,7 @@
   /* ---------- narrow screens: strip the cabinet down ---------- */
   @media (max-width:640px){
     #cab{--sw:min(89vw, 45vh);width:calc(var(--sw) * 1.10);}
+    #cab.wide{--sw:min(89vw, 62vh);}
     #stick{display:none;}
     #panel{flex-direction:column;gap:calc(var(--sw) * .028);}
     #side{align-items:center;}
@@ -147,12 +149,14 @@
   }
   @media (max-height:600px) and (min-width:641px){
     #cab{--sw:min(44vw, 50vh);}
+    #cab.wide{--sw:min(58vw, 62vh);}
     #marquee{height:calc(var(--sw) * .16);}
     #floor{display:none;}
     #foot{display:none;}
   }
   @media (max-height:600px) and (max-width:640px){
     #cab{--sw:min(52vw, 66vh);width:calc(var(--sw) * 1.10);}
+    #cab.wide{--sw:min(72vw, 74vh);}
     #marquee{height:calc(var(--sw) * .16);}
     #floor{display:none;}
   }
@@ -248,7 +252,23 @@ const GAMES=[
          sl:'← →  lopar   preslednica / ↑  izstrelitev in laser',
          de:'← →  Paddle   Leertaste / ↑  Abschuss & Laser',
          it:'← →  racchetta   spazio / ↑  lancio e laser',
-         fr:'← →  raquette   espace / ↑  lancer et laser'}}
+         fr:'← →  raquette   espace / ↑  lancer et laser'}},
+
+  {id:'boulder', repo:'boulder-dash', title:'BOULDER RUSH', year:'1984',
+   art:'boulder', ar:'10/7',
+   tribute:{en:'tribute to Boulder Dash (First Star, 1984)',sl:'poklon igri Boulder Dash (First Star, 1984)',
+            de:'Hommage an Boulder Dash (First Star, 1984)',it:'omaggio a Boulder Dash (First Star, 1984)',
+            fr:'hommage à Boulder Dash (First Star, 1984)'},
+   desc:{en:'Dig through the cave, collect the diamonds before the clock runs out, and keep the boulders off your head.',
+         sl:'Prekoplji se skozi jamo, poberi diamante, preden zmanjka časa, in pazi, da ti skala ne pade na glavo.',
+         de:'Grabe dich durch die Höhle, sammle die Diamanten vor Ablauf der Zeit und halte die Felsen von deinem Kopf fern.',
+         it:'Scava nella caverna, raccogli i diamanti prima che scada il tempo e tieni i massi lontani dalla testa.',
+         fr:'Creuse la caverne, ramasse les diamants avant la fin du temps et évite les rochers qui tombent.'},
+   ctrl:{en:'← → ↑ ↓  move & dig   SHIFT  grab   R  retry',
+         sl:'← → ↑ ↓  hoja in kopanje   SHIFT  kopanje   R  ponovno',
+         de:'← → ↑ ↓  laufen & graben   SHIFT  graben   R  neu',
+         it:'← → ↑ ↓  muovi e scava   SHIFT  scava   R  riprova',
+         fr:'← → ↑ ↓  bouger et creuser   SHIFT  creuser   R  réessayer'}}
 ];
 
 /* ---------------- i18n ---------------- */
@@ -430,6 +450,8 @@ function launch(i){
   const g=GAMES[sel];
   sfx.coin();
   mode='play';
+  screenbox.style.aspectRatio=g.ar||'3/4';
+  cabEl.classList.toggle('wide',(g.ar||'3/4')!=='3/4');
   gf.src=gameURL(g);
   gf.style.display='block';
   cv.style.display='none';
@@ -441,6 +463,8 @@ function toMenu(){
   if(mode!=='play') return;
   sfx.back();
   mode='menu';
+  screenbox.style.aspectRatio='3/4';
+  cabEl.classList.remove('wide');
   gf.style.display='none';
   gf.src='about:blank';
   cv.style.display='block';
@@ -516,7 +540,11 @@ cv.addEventListener('touchstart',ev=>{
 /* ============================================================
    MENU RENDERING — attract mode on a 480×640 canvas
    ============================================================ */
-const CARD_X0=34, CARD_Y0=96, CARD_X1=446, CARD_Y1=368, PLATE=46;
+const CARD_X0=34, CARD_Y0=92, CARD_X1=446, PLATE=44;
+const ROW_H=GAMES.length>=5?36:(GAMES.length===4?40:42);
+const LIST_Y0=500-GAMES.length*ROW_H+ROW_H/2;      // list block ends at y=500
+const CARD_Y1=LIST_Y0-ROW_H/2-12;
+const RULE_Y=516, DESC_Y=534, PRESS_Y=592, NAV_Y=618;
 function text(t,x,y,size,col,align,weight){
   X.fillStyle=col; X.textAlign=align||'center'; X.textBaseline='middle';
   X.font=(weight||'bold')+' '+size+'px "Courier New",monospace';
@@ -704,7 +732,63 @@ function artBatty(x0,y0,x1,y1,t){
   X.fillStyle='#ffd23b'; X.fillRect(bx-4,by-4,8,8);
   X.restore();
 }
-const ART={tower:artTower,pinball:artPinball,batty:artBatty};
+function artBoulder(x0,y0,x1,y1,t){
+  const w=x1-x0,h=y1-y0;
+  X.save(); X.beginPath(); X.rect(x0,y0,w,h); X.clip();
+  X.fillStyle='#0a0704'; X.fillRect(x0,y0,w,h);
+  // cave grid — a stable pseudo-random layout that "falls" as time passes
+  const COLS=18, S=w/COLS, ROWS=Math.ceil(h/S);
+  const drop=(t*S*0.55)%S, shift=Math.floor(t*0.55);
+  const cell=(c,r)=>{
+    const n=(c*73856093 ^ ((r+shift)*19349663))>>>0;
+    const v=n%100;
+    if(v<7)  return 'D';      // diamond
+    if(v<20) return 'O';      // boulder
+    if(v<28) return ' ';      // dug-out space
+    if(v<32) return 'W';      // wall
+    return '.';               // soil
+  };
+  for(let r=-1;r<=ROWS;r++) for(let c=0;c<COLS;c++){
+    const px=x0+c*S, py=y0+r*S+drop, k=cell(c,r);
+    if(k==='.'){
+      X.fillStyle='#6b4a1e'; X.fillRect(px,py,S,S);
+      X.fillStyle='rgba(255,220,150,.16)';
+      X.fillRect(px+S*0.18,py+S*0.22,1.6,1.6); X.fillRect(px+S*0.62,py+S*0.58,1.6,1.6);
+    }else if(k==='W'){
+      X.fillStyle='#8a8f9e'; X.fillRect(px,py,S,S);
+      X.fillStyle='rgba(0,0,0,.30)'; X.fillRect(px,py+S-2,S,2); X.fillRect(px+S-2,py,2,S);
+    }else if(k==='O'){
+      X.fillStyle='#b9bcc6'; X.beginPath(); X.arc(px+S/2,py+S/2,S*0.44,0,TAU); X.fill();
+      X.fillStyle='rgba(255,255,255,.45)'; X.beginPath(); X.arc(px+S*0.36,py+S*0.34,S*0.13,0,TAU); X.fill();
+      X.fillStyle='rgba(0,0,0,.28)'; X.beginPath(); X.arc(px+S*0.62,py+S*0.64,S*0.16,0,TAU); X.fill();
+    }else if(k==='D'){
+      const tw=0.6+0.4*Math.sin(t*5+c+r);
+      X.fillStyle='#8affff'; X.globalAlpha=tw;
+      X.beginPath();
+      X.moveTo(px+S/2,py+S*0.12); X.lineTo(px+S*0.88,py+S/2);
+      X.lineTo(px+S/2,py+S*0.88); X.lineTo(px+S*0.12,py+S/2);
+      X.closePath(); X.fill(); X.globalAlpha=1;
+      X.fillStyle='rgba(255,255,255,.85)';
+      X.fillRect(px+S*0.42,py+S*0.28,S*0.10,S*0.16);
+    }
+  }
+  // hero, dug into the middle
+  const hx=x0+w/2-S/2, hy=y0+h*0.52, bob=Math.sin(t*6)*1.2;
+  X.fillStyle='#0a0704'; X.fillRect(hx-S*0.2,hy-S*0.2,S*1.4,S*1.4);
+  X.fillStyle='#ffd23b'; X.fillRect(hx+S*0.16,hy+S*0.10+bob,S*0.68,S*0.80);
+  X.fillStyle='#02030a';
+  X.fillRect(hx+S*0.28,hy+S*0.26+bob,S*0.14,S*0.14);
+  X.fillRect(hx+S*0.58,hy+S*0.26+bob,S*0.14,S*0.14);
+  X.fillStyle='#ff5d73'; X.fillRect(hx+S*0.16,hy+S*0.72+bob,S*0.68,S*0.18);
+  // a butterfly patrolling
+  const bx=x0+w*0.5+Math.sin(t*1.3)*w*0.30, by=y0+h*0.22;
+  X.fillStyle='#8effc0';
+  X.fillRect(bx-S*0.30,by-S*0.16,S*0.60,S*0.32);
+  X.fillStyle='rgba(255,255,255,.7)';
+  X.fillRect(bx-S*0.30+ (Math.floor(t*8)%2?S*0.06:0),by-S*0.06,S*0.14,S*0.12);
+  X.restore();
+}
+const ART={tower:artTower,pinball:artPinball,batty:artBatty,boulder:artBoulder};
 
 /* ---- the preview card ---- */
 function drawCard(t){
@@ -733,7 +817,7 @@ function drawCard(t){
 /* ---- game list ---- */
 function drawList(){
   rows.length=0;
-  const y0=396, rh=42;
+  const y0=LIST_Y0, rh=ROW_H;
   for(let i=0;i<GAMES.length;i++){
     const g=GAMES[i], y=y0+i*rh, on=(i===sel), hv=(i===hover);
     rows.push({y0:y-rh/2+2,y1:y+rh/2-2,i});
@@ -744,11 +828,11 @@ function drawList(){
       X.fillStyle='rgba(127,160,255,.10)'; X.fillRect(30,y-rh/2+2,W-60,rh-4);
     }
     if(on && Math.floor(perf/380)%2===0) text('▶',48,y-6,15,'#ffd23b','center');
-    text(String(i+1),48,y+12,10,'#5f7ad0','center','normal');
+    text(String(i+1),48,y+11,10,'#5f7ad0','center','normal');
     let ts=17; X.font='bold '+ts+'px "Courier New",monospace';
     while(X.measureText(g.title).width>250 && ts>10){ ts--; X.font='bold '+ts+'px "Courier New",monospace'; }
     text(g.title,68,y-7,ts,on?'#e8eeff':'#9fb6ff','left');
-    text(G(g,'ctrl'),68,y+11,9.5,on?'#8ef0a0':'#5f7ad0','left','normal');
+    text(G(g,'ctrl'),68,y+10,9,on?'#8ef0a0':'#5f7ad0','left','normal');
     text(g.year,W-42,y,13,on?'#ffd23b':'#3a4a99','right');
   }
 }
@@ -756,7 +840,7 @@ function drawList(){
 /* ---- footer of the screen ---- */
 function drawFoot(){
   const g=GAMES[sel];
-  X.fillStyle='rgba(95,120,200,.28)'; X.fillRect(34,532,W-68,1);
+  X.fillStyle='rgba(95,120,200,.28)'; X.fillRect(34,RULE_Y,W-68,1);
   // description of the selected game, wrapped
   X.font='normal 11px "Courier New",monospace';
   const words=G(g,'desc').split(' ');
@@ -766,10 +850,10 @@ function drawFoot(){
     if(X.measureText(tryl).width>W-80 && cur){ lines.push(cur); cur=wd; } else cur=tryl;
   }
   if(cur) lines.push(cur);
-  lines.slice(0,3).forEach((L,i)=>text(L,W/2,552+i*14,11,'#9fb6ff','center','normal'));
+  lines.slice(0,3).forEach((L,i)=>text(L,W/2,DESC_Y+i*14,11,'#9fb6ff','center','normal'));
 
-  if(Math.floor(perf/450)%2===0) text(T('press'),W/2,604,15,'#ffd23b','center');
-  text(T('nav'),W/2,624,9.5,'#5f7ad0','center','normal');
+  if(Math.floor(perf/450)%2===0) text(T('press'),W/2,PRESS_Y,15,'#ffd23b','center');
+  text(T('nav'),W/2,NAV_Y,9.5,'#5f7ad0','center','normal');
 }
 
 /* ---------------- loop ---------------- */
