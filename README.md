@@ -41,12 +41,29 @@ English (default), Slovenian, German, Italian, French. The language is
 guessed from the browser on the first visit and then remembered in
 `localStorage`.
 
+## Install it
+
+The cabinet is a PWA, so a browser will offer to install it — on Android and
+desktop Chrome from the address bar or the `⤓ INSTALL` button that appears in
+the control panel, on iOS via Share → *Add to Home Screen*. Installed, it
+opens standalone with the cabinet filling the screen, and the manifest
+shortcuts jump straight to a single game.
+
+The service worker caches the cabinet itself, so the launcher opens with no
+connection. The games do not come along: the worker is registered at
+`/ulebule-arcade/` and its scope ends there, while each game lives at a
+sibling path (`/batty/`, `/nebulus/`, …). Launching a game offline shows a
+short notice instead of a blank screen. Making the games playable offline
+too would mean giving each game repo its own service worker.
+
 ## Technical
 
-A single self-contained `index.html` — no build step, no external
-requests, no dependencies. CSS and JS are inline. The select screen is a
-480×640 `<canvas>` with procedurally drawn animated previews of each game
-(no images at all).
+`index.html` is self-contained — no build step, no external requests, no
+dependencies. CSS and JS are inline, and the select screen is a 480×640
+`<canvas>` with procedurally drawn animated previews of each game (no
+images at all). The rest of the repo is only there for the PWA:
+`manifest.webmanifest`, `sw.js` and `icons/`. Open `index.html` on its own
+and it still works, minus installability.
 
 To add a game, extend the `GAMES` array at the top of the script (`id`,
 `repo`, `title`, `year`, `art`, optional `ar` for a non-3:4 screen, and

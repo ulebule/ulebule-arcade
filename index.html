@@ -6,6 +6,13 @@
 <title>ULEBULE ARCADE — retro games by ulebule</title>
 <meta name="description" content="A retro arcade cabinet holding all of ulebule's browser games — TOWER, ATOMSKI PINBALL, BATTY and BOULDER RUSH. Pick a cabinet, insert coin, play.">
 <meta name="theme-color" content="#02030a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ARCADE">
 <meta property="og:title" content="ULEBULE ARCADE">
 <meta property="og:description" content="Retro browser games in one arcade cabinet.">
 <style>
@@ -78,6 +85,14 @@
                                      rgba(0,0,0,0) 2px,rgba(0,0,0,0) 3px),
       radial-gradient(120% 120% at 50% 50%,rgba(0,0,0,0) 52%,rgba(0,0,0,.60) 100%);
     mix-blend-mode:multiply;}
+  #offline{position:absolute;inset:0;z-index:8;display:none;
+    flex-direction:column;align-items:center;justify-content:center;
+    gap:calc(var(--sw) * .035);text-align:center;padding:8%;
+    background:rgba(2,3,10,.94);}
+  #offline.on{display:flex;}
+  #offh{color:#ff5d73;font-weight:bold;letter-spacing:.12em;
+    font-size:calc(var(--sw) * .055);text-shadow:0 0 14px rgba(255,93,115,.5);}
+  #offb{color:#9fb6ff;font-size:calc(var(--sw) * .030);line-height:1.6;max-width:92%;}
   #glare{position:absolute;inset:0;pointer-events:none;z-index:7;
     background:linear-gradient(150deg,rgba(200,225,255,.10) 0%,rgba(255,255,255,0) 42%);}
 
@@ -179,6 +194,11 @@
         <iframe id="gf" title="game" allow="autoplay; fullscreen"></iframe>
         <div id="crt"></div>
         <div id="glare"></div>
+        <div id="offline">
+          <div id="offh"></div>
+          <div id="offb"></div>
+          <button id="offbtn" class="ab start" type="button"></button>
+        </div>
       </div>
     </div>
 
@@ -274,35 +294,40 @@ const GAMES=[
 /* ---------------- i18n ---------------- */
 const LANGS=['en','sl','de','it','fr'];
 const STR={
-  en:{sub:'RETRO GAMES',select:'SELECT A GAME',insert:'◎ INSERT COIN',
+  en:{install:'INSTALL',offh:'NO CONNECTION',offb:'The cabinet works offline, but each game still has to be fetched from its own address the first time. Reconnect and try again.',retry:'TRY AGAIN',
+      sub:'RETRO GAMES',select:'SELECT A GAME',insert:'◎ INSERT COIN',
       press:'PRESS START',tap:'TAP A CABINET TO PLAY',
       nav:'◀ ▶ / ↑ ↓  select     ENTER  start',
       start:'START',menu:'◀ GAMES',full:'FULLSCREEN',tab:'OPEN IN NEW TAB',
       src:'SOURCE',prev:'◀',next:'▶',loading:'LOADING…',
       playing:'NOW PLAYING',games:'GAMES',foot:'all games are single-file HTML, hosted on GitHub Pages',
       hintplay:'keyboard goes to the game — click the screen if it stops responding'},
-  sl:{sub:'RETRO IGRE',select:'IZBERI IGRO',insert:'◎ VRZI KOVANEC',
+  sl:{install:'NAMESTI',offh:'NI POVEZAVE',offb:'Avtomat deluje brez povezave, vsako igro pa je treba prvič naložiti z njenega naslova. Poveži se in poskusi znova.',retry:'POSKUSI ZNOVA',
+      sub:'RETRO IGRE',select:'IZBERI IGRO',insert:'◎ VRZI KOVANEC',
       press:'PRITISNI START',tap:'TAPNI AVTOMAT ZA IGRO',
       nav:'◀ ▶ / ↑ ↓  izbira     ENTER  začni',
       start:'START',menu:'◀ IGRE',full:'CEL ZASLON',tab:'ODPRI V NOVEM ZAVIHKU',
       src:'KODA',prev:'◀',next:'▶',loading:'NALAGAM…',
       playing:'IGRAŠ',games:'IGRE',foot:'vse igre so ena sama HTML datoteka na GitHub Pages',
       hintplay:'tipkovnica gre v igro — klikni na zaslon, če se neha odzivati'},
-  de:{sub:'RETRO-SPIELE',select:'SPIEL WÄHLEN',insert:'◎ MÜNZE EINWERFEN',
+  de:{install:'INSTALLIEREN',offh:'KEINE VERBINDUNG',offb:'Der Automat läuft offline, aber jedes Spiel muss beim ersten Mal von seiner eigenen Adresse geladen werden. Verbinde dich und versuche es erneut.',retry:'NOCHMAL',
+      sub:'RETRO-SPIELE',select:'SPIEL WÄHLEN',insert:'◎ MÜNZE EINWERFEN',
       press:'START DRÜCKEN',tap:'AUTOMAT ANTIPPEN ZUM SPIELEN',
       nav:'◀ ▶ / ↑ ↓  wählen     ENTER  starten',
       start:'START',menu:'◀ SPIELE',full:'VOLLBILD',tab:'IN NEUEM TAB ÖFFNEN',
       src:'QUELLCODE',prev:'◀',next:'▶',loading:'LÄDT…',
       playing:'LÄUFT',games:'SPIELE',foot:'alle Spiele sind eine einzige HTML-Datei auf GitHub Pages',
       hintplay:'Tastatur geht ins Spiel — klicke den Bildschirm an, falls es nicht reagiert'},
-  it:{sub:'GIOCHI RETRO',select:'SCEGLI UN GIOCO',insert:'◎ INSERISCI MONETA',
+  it:{install:'INSTALLA',offh:'NESSUNA CONNESSIONE',offb:'Il cabinato funziona offline, ma ogni gioco va scaricato la prima volta dal suo indirizzo. Riconnettiti e riprova.',retry:'RIPROVA',
+      sub:'GIOCHI RETRO',select:'SCEGLI UN GIOCO',insert:'◎ INSERISCI MONETA',
       press:'PREMI START',tap:'TOCCA UN CABINATO PER GIOCARE',
       nav:'◀ ▶ / ↑ ↓  scegli     ENTER  avvia',
       start:'START',menu:'◀ GIOCHI',full:'SCHERMO INTERO',tab:'APRI IN UNA NUOVA SCHEDA',
       src:'CODICE',prev:'◀',next:'▶',loading:'CARICO…',
       playing:'IN GIOCO',games:'GIOCHI',foot:'tutti i giochi sono un unico file HTML su GitHub Pages',
       hintplay:'la tastiera va al gioco — clicca lo schermo se non risponde'},
-  fr:{sub:'JEUX RÉTRO',select:'CHOISIS UN JEU',insert:'◎ INSÉRER UNE PIÈCE',
+  fr:{install:'INSTALLER',offh:'PAS DE CONNEXION',offb:'La borne fonctionne hors ligne, mais chaque jeu doit être chargé une première fois depuis sa propre adresse. Reconnecte-toi et réessaie.',retry:'RÉESSAYER',
+      sub:'JEUX RÉTRO',select:'CHOISIS UN JEU',insert:'◎ INSÉRER UNE PIÈCE',
       press:'APPUIE SUR START',tap:'TOUCHE UNE BORNE POUR JOUER',
       nav:'◀ ▶ / ↑ ↓  choisir     ENTER  démarrer',
       start:'START',menu:'◀ JEUX',full:'PLEIN ÉCRAN',tab:'OUVRIR DANS UN NOUVEL ONGLET',
@@ -390,6 +415,7 @@ function setLang(l){
   if(!LANGS.includes(l)) return;
   lang=l; safeLS('arcade_lang',l); document.documentElement.lang=l;
   buildLangs(); buildChrome(); sfx.move();
+  if(offEl&&offEl.classList.contains('on')) showOffline(true);
 }
 function buildChrome(){
   btns.innerHTML='';
@@ -401,6 +427,7 @@ function buildChrome(){
     btns.appendChild(mkBtn(T('start'),'start',()=>launch(sel)));
     btns.appendChild(mkBtn('▶','round',()=>move(1)));
     btns.appendChild(mkBtn(muted?'♪ OFF':'♪ ON','',toggleMute));
+    if(deferredPrompt) btns.appendChild(mkBtn('⤓ '+T('install'),'',doInstall,T('install')));
     coinEl.textContent=T('insert');
   }else{
     const g=GAMES[sel];
@@ -447,6 +474,10 @@ function selectOnly(i){ if(i===sel) return; sel=i; sfx.move(); buildChrome(); }
 function launch(i){
   if(mode==='play') return;
   sel=((i%GAMES.length)+GAMES.length)%GAMES.length;
+  launchNow(sel);
+}
+function launchNow(i){
+  sel=((i%GAMES.length)+GAMES.length)%GAMES.length;
   const g=GAMES[sel];
   sfx.coin();
   mode='play';
@@ -456,6 +487,7 @@ function launch(i){
   gf.style.display='block';
   cv.style.display='none';
   buildChrome();
+  showOffline(!navigator.onLine);
   try{ location.hash=g.id; }catch(e){}
   setTimeout(focusGame,400);
 }
@@ -468,6 +500,7 @@ function toMenu(){
   gf.style.display='none';
   gf.src='about:blank';
   cv.style.display='block';
+  showOffline(false);
   buildChrome();
   try{ if(location.hash) history.replaceState(null,'',location.pathname+location.search); }catch(e){}
 }
@@ -872,6 +905,38 @@ function frame(ts){
   drawFoot();
 }
 
+/* ---------------- offline notice ---------------- */
+const offEl=document.getElementById('offline'),
+      offhEl=document.getElementById('offh'),
+      offbEl=document.getElementById('offb'),
+      offbtn=document.getElementById('offbtn');
+function showOffline(on){
+  offhEl.textContent=T('offh'); offbEl.textContent=T('offb'); offbtn.textContent=T('retry');
+  offEl.classList.toggle('on',!!on);
+}
+offbtn.addEventListener('click',e=>{
+  e.preventDefault();
+  if(navigator.onLine){ showOffline(false); launchNow(sel); }
+});
+addEventListener('online',()=>{ if(offEl.classList.contains('on')) showOffline(false); });
+addEventListener('offline',()=>{ if(mode==='play') showOffline(true); });
+
+/* ---------------- install prompt ---------------- */
+let deferredPrompt=null;
+addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredPrompt=e; buildChrome(); });
+addEventListener('appinstalled',()=>{ deferredPrompt=null; buildChrome(); });
+function doInstall(){
+  if(!deferredPrompt) return;
+  const p=deferredPrompt; deferredPrompt=null;
+  p.prompt(); buildChrome();
+}
+
+/* ---------------- service worker ---------------- */
+const swOK=(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1');
+if('serviceWorker' in navigator && swOK){
+  addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+
 /* ---------------- boot ---------------- */
 function boot(){
   document.documentElement.lang=lang;
@@ -892,7 +957,7 @@ addEventListener('hashchange',()=>{
 boot();
 
 /* test hook */
-window.__arcade={GAMES,launch,toMenu,move,setLang,gameURL,
+window.__arcade={GAMES,launch,toMenu,move,setLang,gameURL,showOffline,
   get mode(){return mode;}, get sel(){return sel;}, get lang(){return lang;}};
 </script>
 </body>
