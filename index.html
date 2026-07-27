@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ULEBULE ARCADE — retro games by ulebule</title>
+<meta name="description" content="A retro arcade cabinet holding all of ulebule's browser games — TOWER, ATOMSKI PINBALL and BATTY. Pick a cabinet, insert coin, play.">
+<meta name="theme-color" content="#02030a">
+<meta property="og:title" content="ULEBULE ARCADE">
+<meta property="og:description" content="Retro browser games in one arcade cabinet.">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:#02030a;overflow:hidden;
+    font-family:"Courier New",monospace;color:#e8eeff;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
+
+  /* ---------- the room ---------- */
+  #room{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:
+      radial-gradient(120% 80% at 50% 0%,rgba(60,90,220,.20) 0%,rgba(0,0,0,0) 60%),
+      radial-gradient(90% 60% at 50% 100%,rgba(255,210,59,.07) 0%,rgba(0,0,0,0) 60%),
+      #02030a;
+    padding:6px 6px 22px;}
+  #floor{position:absolute;left:0;right:0;bottom:0;height:32%;pointer-events:none;
+    background:
+      repeating-linear-gradient(90deg,rgba(95,120,200,.16) 0 1px,rgba(0,0,0,0) 1px 46px),
+      repeating-linear-gradient(0deg,rgba(95,120,200,.13) 0 1px,rgba(0,0,0,0) 1px 30px),
+      linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(20,26,51,.5) 100%);
+    transform:perspective(340px) rotateX(62deg);transform-origin:50% 100%;
+    -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,0) 0%,#000 45%);
+    mask-image:linear-gradient(180deg,rgba(0,0,0,0) 0%,#000 45%);}
+
+  /* ---------- cabinet ---------- */
+  #cab{position:relative;display:flex;flex-direction:column;align-items:center;
+    --sw:min(64vw, 47vh);   /* screen width; screen is 3:4 */
+    width:calc(var(--sw) * 1.30);
+    filter:drop-shadow(0 24px 40px rgba(0,0,0,.75));}
+
+  #marquee{position:relative;width:100%;height:calc(var(--sw) * .215);
+    border-radius:14px 14px 4px 4px;overflow:hidden;
+    background:linear-gradient(180deg,#1b2450 0%,#0d1330 100%);
+    border:2px solid #3a4a99;border-bottom:none;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 34px rgba(255,210,59,.20),inset 0 0 40px rgba(255,210,59,.10);}
+  #marquee::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,.20) 0 1px,rgba(0,0,0,0) 1px 3px);}
+  #mqtext{text-align:center;line-height:1.05;padding:0 8px;}
+  #mqmain{font-weight:bold;letter-spacing:.13em;
+    font-size:calc(var(--sw) * .082);
+    color:#ffd23b;text-shadow:0 0 10px rgba(255,210,59,.85),0 0 26px rgba(255,140,0,.45);}
+  #mqsub{font-size:calc(var(--sw) * .030);letter-spacing:.30em;color:#7fa0ff;margin-top:.35em;}
+  .flick{animation:flick 6.5s infinite;}
+  @keyframes flick{0%,96%,100%{opacity:1}97%{opacity:.55}98%{opacity:1}99%{opacity:.7}}
+
+  #hood{width:100%;height:calc(var(--sw) * .035);
+    background:linear-gradient(180deg,#0a0f26,#141a33);
+    border-left:2px solid #3a4a99;border-right:2px solid #3a4a99;}
+
+  #bezel{position:relative;width:100%;padding:calc(var(--sw) * .055);
+    background:linear-gradient(180deg,#141a33 0%,#0a0f26 100%);
+    border:2px solid #3a4a99;border-top:none;border-bottom:none;
+    display:flex;justify-content:center;overflow:hidden;}
+  /* cabinet side art */
+  #bezel::before,#bezel::after{content:"";position:absolute;top:0;bottom:0;
+    width:calc(var(--sw) * .038);opacity:.20;
+    background:linear-gradient(180deg,#ff5d73 0%,#ffd23b 32%,#8ef0a0 58%,#7fa0ff 84%,#9f6bff 100%);}
+  #bezel::before{left:0;} #bezel::after{right:0;}
+  #screenbox{position:relative;width:var(--sw);aspect-ratio:3/4;
+    background:#02030a;border-radius:10px;overflow:hidden;
+    box-shadow:inset 0 0 0 3px #05070f, inset 0 0 40px rgba(0,0,0,.9),
+               0 0 44px rgba(60,120,255,.28);}
+  #c{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;display:block;}
+  #gf{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#02030a;}
+  #crt{position:absolute;inset:0;pointer-events:none;z-index:6;
+    background:
+      repeating-linear-gradient(0deg,rgba(0,0,0,.26) 0,rgba(0,0,0,.26) 1px,
+                                     rgba(0,0,0,0) 2px,rgba(0,0,0,0) 3px),
+      radial-gradient(120% 120% at 50% 50%,rgba(0,0,0,0) 52%,rgba(0,0,0,.60) 100%);
+    mix-blend-mode:multiply;}
+  #glare{position:absolute;inset:0;pointer-events:none;z-index:7;
+    background:linear-gradient(150deg,rgba(200,225,255,.10) 0%,rgba(255,255,255,0) 42%);}
+
+  /* ---------- control panel ---------- */
+  #panel{position:relative;width:100%;
+    background:linear-gradient(180deg,#1b2450 0%,#10162f 60%,#0a0f26 100%);
+    border:2px solid #3a4a99;border-top:none;border-radius:0 0 16px 16px;
+    padding:calc(var(--sw) * .035) calc(var(--sw) * .045);
+    display:flex;align-items:center;gap:calc(var(--sw) * .035);}
+  #panel::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;
+    background:linear-gradient(90deg,#ff5d73,#ffd23b,#8ef0a0,#7fa0ff,#ff5d73);opacity:.75;}
+
+  #stick{flex:0 0 auto;width:calc(var(--sw) * .115);height:calc(var(--sw) * .115);
+    position:relative;display:flex;align-items:flex-end;justify-content:center;}
+  #stickbase{position:absolute;bottom:0;width:100%;height:44%;border-radius:50%;
+    background:radial-gradient(circle at 50% 30%,#2b3670,#0a0f26);border:1px solid #4a5da8;}
+  #stickshaft{position:absolute;bottom:14%;width:12%;height:60%;background:#5f7ad0;border-radius:3px;
+    transform-origin:50% 100%;transition:transform .09s ease-out;}
+  #stickball{position:absolute;bottom:62%;width:38%;aspect-ratio:1;border-radius:50%;
+    background:radial-gradient(circle at 34% 30%,#ff9aa8,#c0392b);
+    box-shadow:0 0 12px rgba(255,93,115,.55);transform-origin:50% 300%;transition:transform .09s ease-out;}
+  .tiltL #stickshaft,.tiltL #stickball{transform:rotate(-20deg);}
+  .tiltR #stickshaft,.tiltR #stickball{transform:rotate(20deg);}
+
+  #btns{flex:1 1 auto;display:flex;flex-wrap:wrap;align-items:center;
+    gap:calc(var(--sw) * .022);justify-content:center;}
+  .ab{cursor:pointer;font-family:inherit;font-weight:bold;letter-spacing:.10em;
+    font-size:calc(var(--sw) * .032);padding:.55em .85em;border-radius:999px;
+    background:linear-gradient(180deg,#26305e,#141a33);color:#bcd0ff;
+    border:1px solid #4a5da8;box-shadow:0 3px 0 #070b1a;
+    transition:transform .06s,box-shadow .06s,background .12s,color .12s;white-space:nowrap;}
+  .ab:hover{background:linear-gradient(180deg,#33407a,#1a2244);color:#e8eeff;}
+  .ab:active{transform:translateY(3px);box-shadow:0 0 0 #070b1a;}
+  .ab.start{background:linear-gradient(180deg,#ffd23b,#c99500);color:#2a1c00;border-color:#ffe98a;
+    box-shadow:0 3px 0 #4a3700,0 0 18px rgba(255,210,59,.45);}
+  .ab.start:hover{background:linear-gradient(180deg,#ffe36f,#dda600);color:#2a1c00;}
+  .ab.round{width:calc(var(--sw) * .085);height:calc(var(--sw) * .085);padding:0;
+    display:flex;align-items:center;justify-content:center;font-size:calc(var(--sw) * .038);line-height:1;}
+
+  #side{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;
+    gap:calc(var(--sw) * .014);}
+  #langs{display:flex;gap:3px;}
+  .lg{cursor:pointer;font-family:inherit;font-size:calc(var(--sw) * .026);font-weight:bold;
+    padding:.32em .45em;border-radius:5px;background:#0a0f26;color:#5f7ad0;
+    border:1px solid #2b3670;letter-spacing:.05em;}
+  .lg:hover{color:#bcd0ff;border-color:#4a5da8;}
+  .lg.on{background:#ffd23b;color:#2a1c00;border-color:#ffe98a;
+    box-shadow:0 0 10px rgba(255,210,59,.5);}
+  #coin{font-size:calc(var(--sw) * .024);color:#5f7ad0;letter-spacing:.14em;white-space:nowrap;}
+
+  /* ---------- fullscreen ---------- */
+  #screenbox:fullscreen,#screenbox:-webkit-full-screen{width:100vw;height:100vh;
+    aspect-ratio:auto;border-radius:0;box-shadow:none;}
+
+  /* ---------- footer ---------- */
+  #foot{position:fixed;left:0;right:0;bottom:2px;text-align:center;
+    font-size:11px;color:#3a4a99;letter-spacing:.10em;pointer-events:none;z-index:2;}
+  #foot a{color:#5f7ad0;text-decoration:none;pointer-events:auto;}
+  #foot a:hover{color:#ffd23b;}
+
+  /* ---------- narrow screens: strip the cabinet down ---------- */
+  @media (max-width:640px){
+    #cab{--sw:min(89vw, 45vh);width:calc(var(--sw) * 1.10);}
+    #stick{display:none;}
+    #panel{flex-direction:column;gap:calc(var(--sw) * .028);}
+    #side{align-items:center;}
+    #foot{display:none;}
+  }
+  @media (max-height:600px) and (min-width:641px){
+    #cab{--sw:min(44vw, 50vh);}
+    #marquee{height:calc(var(--sw) * .16);}
+    #floor{display:none;}
+    #foot{display:none;}
+  }
+  @media (max-height:600px) and (max-width:640px){
+    #cab{--sw:min(52vw, 66vh);width:calc(var(--sw) * 1.10);}
+    #marquee{height:calc(var(--sw) * .16);}
+    #floor{display:none;}
+  }
+</style>
+</head>
+<body>
+<div id="room">
+  <div id="floor"></div>
+
+  <div id="cab">
+    <div id="marquee"><div id="mqtext" class="flick">
+      <div id="mqmain">ULEBULE ARCADE</div>
+      <div id="mqsub">RETRO GAMES</div>
+    </div></div>
+    <div id="hood"></div>
+
+    <div id="bezel">
+      <div id="screenbox">
+        <canvas id="c" width="480" height="640"></canvas>
+        <iframe id="gf" title="game" allow="autoplay; fullscreen"></iframe>
+        <div id="crt"></div>
+        <div id="glare"></div>
+      </div>
+    </div>
+
+    <div id="panel">
+      <div id="stick">
+        <div id="stickbase"></div><div id="stickshaft"></div><div id="stickball"></div>
+      </div>
+      <div id="btns"></div>
+      <div id="side">
+        <div id="langs"></div>
+        <div id="coin">◎ INSERT COIN</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="foot">github.com/<a href="https://github.com/ulebule" target="_blank" rel="noopener">ulebule</a> · <span id="footnote"></span></div>
+
+<script>
+"use strict";
+/* ============================================================
+   ULEBULE ARCADE — launcher for the retro games at github.com/ulebule
+   Single self-contained file. Games run in an iframe inside the cabinet.
+   ============================================================ */
+
+/* ---------------- games ---------------- */
+const GAMES=[
+  {id:'tower', repo:'nebulus', title:'TOWER', year:'1987',
+   art:'tower',
+   tribute:{en:'tribute to Nebulus (Hewson, 1987)',sl:'poklon igri Nebulus (Hewson, 1987)',
+            de:'Hommage an Nebulus (Hewson, 1987)',it:'omaggio a Nebulus (Hewson, 1987)',
+            fr:'hommage à Nebulus (Hewson, 1987)'},
+   desc:{en:'Climb the rotating tower, dodge what walks it, reach the door on top.',
+         sl:'Splezaj po vrtečem se stolpu, izogni se pošastim in pridi do vrat na vrhu.',
+         de:'Erklimme den rotierenden Turm, weiche allem aus, erreiche die Tür oben.',
+         it:'Scala la torre rotante, schiva i nemici, raggiungi la porta in cima.',
+         fr:'Grimpe la tour rotative, esquive les ennemis, atteins la porte du sommet.'},
+   ctrl:{en:'← →  walk   ↑ / SPACE  jump   X / ↓  shoot',
+         sl:'← →  hoja   ↑ / preslednica  skok   X / ↓  streljanje',
+         de:'← →  gehen   ↑ / Leertaste  springen   X / ↓  schießen',
+         it:'← →  cammina   ↑ / spazio  salta   X / ↓  spara',
+         fr:'← →  marcher   ↑ / espace  sauter   X / ↓  tirer'}},
+
+  {id:'pinball', repo:'atomski-pinball', title:'ATOMSKI PINBALL', year:'1980',
+   art:'pinball',
+   tribute:{en:'tribute to Atari Video Pinball (1980)',sl:'poklon igri Atari Video Pinball (1980)',
+            de:'Hommage an Atari Video Pinball (1980)',it:'omaggio a Atari Video Pinball (1980)',
+            fr:'hommage à Atari Video Pinball (1980)'},
+   desc:{en:'One table, two flippers, no mercy. Keep the ball alive and rack up the board.',
+         sl:'Ena miza, dva flipperja, nič milosti. Drži žogo v igri in nabiraj točke.',
+         de:'Ein Tisch, zwei Flipper, keine Gnade. Halte die Kugel im Spiel.',
+         it:'Un tavolo, due flipper, nessuna pietà. Tieni la pallina in gioco.',
+         fr:'Une table, deux flippers, aucune pitié. Garde la bille en jeu.'},
+   ctrl:{en:'← →  flippers   ↓ / SPACE  launch',
+         sl:'← →  flipperja   ↓ / preslednica  izstrelitev',
+         de:'← →  Flipper   ↓ / Leertaste  abschießen',
+         it:'← →  flipper   ↓ / spazio  lancia',
+         fr:'← →  flippers   ↓ / espace  lancer'}},
+
+  {id:'batty', repo:'batty', title:'BATTY', year:'1987',
+   art:'batty',
+   tribute:{en:'tribute to Batty (Elite, ZX Spectrum, 1987)',sl:'poklon igri Batty (Elite, ZX Spectrum, 1987)',
+            de:'Hommage an Batty (Elite, ZX Spectrum, 1987)',it:'omaggio a Batty (Elite, ZX Spectrum, 1987)',
+            fr:'hommage à Batty (Elite, ZX Spectrum, 1987)'},
+   desc:{en:'Break every brick. Catch capsules, grow the bat, shoot the aliens dropping bombs.',
+         sl:'Razbij vse bloke. Lovi kapsule, podaljšaj lopar in sestreli vesoljce z bombami.',
+         de:'Zerschlage jeden Stein. Fange Kapseln, verlängere das Paddle, schieße die Aliens ab.',
+         it:'Rompi ogni mattone. Prendi le capsule, allunga la racchetta, abbatti gli alieni.',
+         fr:'Casse chaque brique. Attrape les capsules, allonge la raquette, abats les aliens.'},
+   ctrl:{en:'← →  bat   SPACE / ↑  launch & laser',
+         sl:'← →  lopar   preslednica / ↑  izstrelitev in laser',
+         de:'← →  Paddle   Leertaste / ↑  Abschuss & Laser',
+         it:'← →  racchetta   spazio / ↑  lancio e laser',
+         fr:'← →  raquette   espace / ↑  lancer et laser'}}
+];
+
+/* ---------------- i18n ---------------- */
+const LANGS=['en','sl','de','it','fr'];
+const STR={
+  en:{sub:'RETRO GAMES',select:'SELECT A GAME',insert:'◎ INSERT COIN',
+      press:'PRESS START',tap:'TAP A CABINET TO PLAY',
+      nav:'◀ ▶ / ↑ ↓  select     ENTER  start',
+      start:'START',menu:'◀ GAMES',full:'FULLSCREEN',tab:'OPEN IN NEW TAB',
+      src:'SOURCE',prev:'◀',next:'▶',loading:'LOADING…',
+      playing:'NOW PLAYING',games:'GAMES',foot:'all games are single-file HTML, hosted on GitHub Pages',
+      hintplay:'keyboard goes to the game — click the screen if it stops responding'},
+  sl:{sub:'RETRO IGRE',select:'IZBERI IGRO',insert:'◎ VRZI KOVANEC',
+      press:'PRITISNI START',tap:'TAPNI AVTOMAT ZA IGRO',
+      nav:'◀ ▶ / ↑ ↓  izbira     ENTER  začni',
+      start:'START',menu:'◀ IGRE',full:'CEL ZASLON',tab:'ODPRI V NOVEM ZAVIHKU',
+      src:'KODA',prev:'◀',next:'▶',loading:'NALAGAM…',
+      playing:'IGRAŠ',games:'IGRE',foot:'vse igre so ena sama HTML datoteka na GitHub Pages',
+      hintplay:'tipkovnica gre v igro — klikni na zaslon, če se neha odzivati'},
+  de:{sub:'RETRO-SPIELE',select:'SPIEL WÄHLEN',insert:'◎ MÜNZE EINWERFEN',
+      press:'START DRÜCKEN',tap:'AUTOMAT ANTIPPEN ZUM SPIELEN',
+      nav:'◀ ▶ / ↑ ↓  wählen     ENTER  starten',
+      start:'START',menu:'◀ SPIELE',full:'VOLLBILD',tab:'IN NEUEM TAB ÖFFNEN',
+      src:'QUELLCODE',prev:'◀',next:'▶',loading:'LÄDT…',
+      playing:'LÄUFT',games:'SPIELE',foot:'alle Spiele sind eine einzige HTML-Datei auf GitHub Pages',
+      hintplay:'Tastatur geht ins Spiel — klicke den Bildschirm an, falls es nicht reagiert'},
+  it:{sub:'GIOCHI RETRO',select:'SCEGLI UN GIOCO',insert:'◎ INSERISCI MONETA',
+      press:'PREMI START',tap:'TOCCA UN CABINATO PER GIOCARE',
+      nav:'◀ ▶ / ↑ ↓  scegli     ENTER  avvia',
+      start:'START',menu:'◀ GIOCHI',full:'SCHERMO INTERO',tab:'APRI IN UNA NUOVA SCHEDA',
+      src:'CODICE',prev:'◀',next:'▶',loading:'CARICO…',
+      playing:'IN GIOCO',games:'GIOCHI',foot:'tutti i giochi sono un unico file HTML su GitHub Pages',
+      hintplay:'la tastiera va al gioco — clicca lo schermo se non risponde'},
+  fr:{sub:'JEUX RÉTRO',select:'CHOISIS UN JEU',insert:'◎ INSÉRER UNE PIÈCE',
+      press:'APPUIE SUR START',tap:'TOUCHE UNE BORNE POUR JOUER',
+      nav:'◀ ▶ / ↑ ↓  choisir     ENTER  démarrer',
+      start:'START',menu:'◀ JEUX',full:'PLEIN ÉCRAN',tab:'OUVRIR DANS UN NOUVEL ONGLET',
+      src:'CODE',prev:'◀',next:'▶',loading:'CHARGEMENT…',
+      playing:'EN COURS',games:'JEUX',foot:'tous les jeux tiennent dans un seul fichier HTML sur GitHub Pages',
+      hintplay:'le clavier va au jeu — clique sur l’écran s’il ne répond plus'}
+};
+function safeLS(k,v){
+  try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){ return null; }
+}
+function detectLang(){
+  const saved=safeLS('arcade_lang');
+  if(saved&&LANGS.includes(saved)) return saved;
+  try{
+    const list=(navigator.languages&&navigator.languages.length)?navigator.languages:[navigator.language||'en'];
+    for(const raw of list){ const l=String(raw).slice(0,2).toLowerCase(); if(LANGS.includes(l)) return l; }
+  }catch(e){}
+  return 'en';
+}
+let lang=detectLang();
+function T(k){ return (STR[lang]&&STR[lang][k]) || STR.en[k] || k; }
+function G(g,k){ return (g[k]&&(g[k][lang]||g[k].en)) || ''; }
+
+/* ---------------- audio ---------------- */
+let AC=null, muted=(safeLS('arcade_mute')==='1');
+function ac(){
+  if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+  if(AC&&AC.state==='suspended'){ try{ AC.resume(); }catch(e){} }
+  return AC;
+}
+function beep(freq,dur,type,vol){
+  if(muted) return;
+  const a=ac(); if(!a) return;
+  const o=a.createOscillator(), g=a.createGain();
+  o.type=type||'square'; o.frequency.value=freq;
+  const t=a.currentTime;
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol||0.045,t+0.005);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+(dur||0.07));
+  o.connect(g); g.connect(a.destination);
+  o.start(t); o.stop(t+(dur||0.07)+0.02);
+}
+const sfx={
+  move: ()=>beep(520,0.05,'square',0.035),
+  coin: ()=>{[880,1175,1568].forEach((f,i)=>setTimeout(()=>beep(f,0.09,'square',0.05),i*70));},
+  back: ()=>{beep(400,0.06,'square',0.04); setTimeout(()=>beep(260,0.09,'square',0.04),60);}
+};
+
+/* ---------------- state ---------------- */
+const cv=document.getElementById('c'), X=cv.getContext('2d');
+const W=480,H=640,TAU=Math.PI*2;
+let sel=0, mode='menu', perf=0, last=0, coinT=0;
+const gf=document.getElementById('gf');
+
+function gameURL(g){
+  // On github.io a sibling path keeps forks working; elsewhere fall back to the canonical host.
+  try{ if(location.hostname.endsWith('github.io')) return '../'+g.repo+'/'; }catch(e){}
+  return 'https://ulebule.github.io/'+g.repo+'/';
+}
+function repoURL(g){ return 'https://github.com/ulebule/'+g.repo; }
+
+/* ---------------- chrome (marquee, panel, langs) ---------------- */
+const mqmain=document.getElementById('mqmain'), mqsub=document.getElementById('mqsub');
+const btns=document.getElementById('btns'), langsEl=document.getElementById('langs');
+const coinEl=document.getElementById('coin'), footnote=document.getElementById('footnote');
+const cabEl=document.getElementById('cab'), screenbox=document.getElementById('screenbox');
+
+function mkBtn(label,cls,fn,title){
+  const b=document.createElement('button');
+  b.className='ab'+(cls?' '+cls:''); b.textContent=label; b.type='button';
+  if(title){ b.title=title; b.setAttribute('aria-label',title); }
+  b.addEventListener('click',e=>{e.preventDefault(); ac(); fn();});
+  return b;
+}
+function buildLangs(){
+  langsEl.innerHTML='';
+  LANGS.forEach(l=>{
+    const b=document.createElement('button');
+    b.className='lg'+(l===lang?' on':''); b.textContent=l.toUpperCase(); b.type='button';
+    b.addEventListener('click',e=>{e.preventDefault(); ac(); setLang(l);});
+    langsEl.appendChild(b);
+  });
+}
+function setLang(l){
+  if(!LANGS.includes(l)) return;
+  lang=l; safeLS('arcade_lang',l); document.documentElement.lang=l;
+  buildLangs(); buildChrome(); sfx.move();
+}
+function buildChrome(){
+  btns.innerHTML='';
+  if(mode==='menu'){
+    const g=GAMES[sel];
+    mqmain.textContent=g.title;
+    mqsub.textContent=G(g,'tribute');
+    btns.appendChild(mkBtn('◀','round',()=>move(-1)));
+    btns.appendChild(mkBtn(T('start'),'start',()=>launch(sel)));
+    btns.appendChild(mkBtn('▶','round',()=>move(1)));
+    btns.appendChild(mkBtn(muted?'♪ OFF':'♪ ON','',toggleMute));
+    coinEl.textContent=T('insert');
+  }else{
+    const g=GAMES[sel];
+    mqmain.textContent=g.title;
+    mqsub.textContent=G(g,'tribute');
+    btns.appendChild(mkBtn(T('menu'),'',toMenu,T('menu')));
+    btns.appendChild(mkBtn('⛶','round start',goFullscreen,T('full')));
+    btns.appendChild(mkBtn('↗','round',()=>window.open(gameURL(GAMES[sel]),'_blank','noopener'),T('tab')));
+    btns.appendChild(mkBtn('{ }','round',()=>window.open(repoURL(GAMES[sel]),'_blank','noopener'),T('src')));
+    coinEl.textContent=T('playing')+': '+g.title;
+  }
+  footnote.textContent=T('foot');
+}
+function toggleMute(){
+  muted=!muted; safeLS('arcade_mute',muted?'1':'0'); buildChrome(); if(!muted) sfx.move();
+}
+function goFullscreen(){
+  const el=screenbox;
+  try{
+    if(document.fullscreenElement||document.webkitFullscreenElement){
+      (document.exitFullscreen||document.webkitExitFullscreen).call(document);
+    }else{
+      (el.requestFullscreen||el.webkitRequestFullscreen).call(el);
+    }
+  }catch(e){}
+  setTimeout(focusGame,300);
+}
+
+/* ---------------- joystick wiggle ---------------- */
+let tiltT=0;
+function tilt(dir){
+  cabEl.classList.remove('tiltL','tiltR');
+  cabEl.classList.add(dir<0?'tiltL':'tiltR');
+  tiltT=0.16;
+}
+
+/* ---------------- navigation ---------------- */
+function move(d){
+  if(mode!=='menu') return;
+  sel=(sel+d+GAMES.length)%GAMES.length;
+  sfx.move(); tilt(d); coinT=0; buildChrome();
+}
+function selectOnly(i){ if(i===sel) return; sel=i; sfx.move(); buildChrome(); }
+function launch(i){
+  if(mode==='play') return;
+  sel=((i%GAMES.length)+GAMES.length)%GAMES.length;
+  const g=GAMES[sel];
+  sfx.coin();
+  mode='play';
+  gf.src=gameURL(g);
+  gf.style.display='block';
+  cv.style.display='none';
+  buildChrome();
+  try{ location.hash=g.id; }catch(e){}
+  setTimeout(focusGame,400);
+}
+function toMenu(){
+  if(mode!=='play') return;
+  sfx.back();
+  mode='menu';
+  gf.style.display='none';
+  gf.src='about:blank';
+  cv.style.display='block';
+  buildChrome();
+  try{ if(location.hash) history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+}
+function focusGame(){
+  try{ gf.contentWindow.focus(); }catch(e){}
+  try{ gf.focus(); }catch(e){}
+  // Same-origin on Pages: let ESC inside the game come back to the cabinet select.
+  try{
+    const d=gf.contentDocument;
+    if(d&&!d.__arcadeHooked){
+      d.__arcadeHooked=true;
+      d.addEventListener('keydown',e=>{ if(e.key==='Escape') toMenu(); });
+    }
+  }catch(e){}
+}
+gf.addEventListener('load',focusGame);
+
+/* ---------------- keyboard ---------------- */
+addEventListener('keydown',e=>{
+  if(mode==='play'){
+    if(e.key==='Escape'){ e.preventDefault(); toMenu(); }
+    return; // everything else belongs to the game
+  }
+  ac();
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' ','Enter'].includes(e.key)) e.preventDefault();
+  if(e.repeat) return;
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp') move(-1);
+  else if(e.key==='ArrowRight'||e.key==='ArrowDown') move(1);
+  else if(e.key==='Enter'||e.key===' ') launch(sel);
+  else if(e.key==='m'||e.key==='M') toggleMute();
+  else if(e.key==='l'||e.key==='L') setLang(LANGS[(LANGS.indexOf(lang)+1)%LANGS.length]);
+  else if(e.key>='1'&&e.key<='9'){ const i=+e.key-1; if(i<GAMES.length) launch(i); }
+});
+
+/* ---------------- pointer on the menu screen ---------------- */
+const rows=[];  // filled by the renderer: {y0,y1,i}
+function canvasPoint(ev){
+  const r=cv.getBoundingClientRect();
+  const cx=(ev.clientX!==undefined?ev.clientX:(ev.touches&&ev.touches[0].clientX));
+  const cy=(ev.clientY!==undefined?ev.clientY:(ev.touches&&ev.touches[0].clientY));
+  return {x:(cx-r.left)/r.width*W, y:(cy-r.top)/r.height*H};
+}
+let hover=-1;
+cv.addEventListener('mousemove',ev=>{
+  if(mode!=='menu') return;
+  const p=canvasPoint(ev); hover=-1;
+  for(const r of rows) if(p.y>=r.y0&&p.y<=r.y1) hover=r.i;
+  cv.style.cursor=(hover>=0||p.y<CARD_Y1)?'pointer':'default';
+});
+cv.addEventListener('mouseleave',()=>{hover=-1;});
+cv.addEventListener('click',ev=>{
+  if(mode!=='menu') return;
+  ac();
+  const p=canvasPoint(ev);
+  for(const r of rows){
+    if(p.y>=r.y0&&p.y<=r.y1){ if(r.i===sel) launch(r.i); else selectOnly(r.i); return; }
+  }
+  if(p.y<CARD_Y1) launch(sel);            // tapping the preview starts it
+});
+cv.addEventListener('touchstart',ev=>{
+  if(mode!=='menu') return;
+  ev.preventDefault(); ac();
+  const p=canvasPoint(ev);
+  for(const r of rows){
+    if(p.y>=r.y0&&p.y<=r.y1){ if(r.i===sel) launch(r.i); else selectOnly(r.i); return; }
+  }
+  if(p.y<CARD_Y1) launch(sel);
+},{passive:false});
+
+/* ============================================================
+   MENU RENDERING — attract mode on a 480×640 canvas
+   ============================================================ */
+const CARD_X0=34, CARD_Y0=96, CARD_X1=446, CARD_Y1=368, PLATE=46;
+function text(t,x,y,size,col,align,weight){
+  X.fillStyle=col; X.textAlign=align||'center'; X.textBaseline='middle';
+  X.font=(weight||'bold')+' '+size+'px "Courier New",monospace';
+  X.fillText(t,x,y);
+}
+/* starfield */
+const stars=[];
+for(let i=0;i<70;i++) stars.push({x:Math.random()*W,y:Math.random()*H,s:0.3+Math.random()*1.4,r:1+Math.random()*1.6});
+
+function drawBg(dt){
+  X.fillStyle='#02030a'; X.fillRect(0,0,W,H);
+  for(const s of stars){
+    s.y+=s.s*30*dt; if(s.y>H){s.y=-4;s.x=Math.random()*W;}
+    X.fillStyle=s.s>1.2?'rgba(190,215,255,.75)':'rgba(120,150,220,.45)';
+    X.fillRect(s.x|0,s.y|0,s.r|0||1,s.r|0||1);
+  }
+  // horizon glow
+  const gr=X.createLinearGradient(0,H*0.72,0,H);
+  gr.addColorStop(0,'rgba(0,0,0,0)'); gr.addColorStop(1,'rgba(60,90,220,.12)');
+  X.fillStyle=gr; X.fillRect(0,H*0.72,W,H*0.28);
+}
+
+/* ---- header ---- */
+const HUE=['#ff5d73','#ffd23b','#8ef0a0','#6ad0ff','#9f6bff'];
+function drawHeader(){
+  const t='ULEBULE ARCADE';
+  X.textAlign='left'; X.textBaseline='middle';
+  X.font='bold 30px "Courier New",monospace';
+  let total=0; const wds=[];
+  for(const ch of t){ const w=X.measureText(ch).width; wds.push(w); total+=w; }
+  let x=(W-total)/2;
+  for(let i=0;i<t.length;i++){
+    const col=HUE[(i+Math.floor(perf/140))%HUE.length];
+    X.fillStyle=col;
+    X.shadowColor=col; X.shadowBlur=12;
+    X.fillText(t[i],x,34);
+    x+=wds[i];
+  }
+  X.shadowBlur=0;
+  text(T('select'),W/2,64,12,'#7fa0ff','center');
+  // rule
+  X.fillStyle='rgba(95,120,200,.35)'; X.fillRect(34,80,W-68,1);
+}
+
+/* ---- preview art (procedural, one per game) ---- */
+function artTower(x0,y0,x1,y1,t){
+  const w=x1-x0,h=y1-y0, cx=x0+w/2;
+  X.save(); X.beginPath(); X.rect(x0,y0,w,h); X.clip();
+  const g=X.createLinearGradient(0,y0,0,y1);
+  g.addColorStop(0,'#0a1038'); g.addColorStop(0.6,'#060b22'); g.addColorStop(1,'#04060f');
+  X.fillStyle=g; X.fillRect(x0,y0,w,h);
+  // sky
+  for(let i=0;i<28;i++){
+    const sx=x0+((i*137)%(w-4))+2, sy=y0+((i*89)%(h-4))+2;
+    X.fillStyle=(i%3)?'rgba(150,180,255,.30)':'rgba(230,240,255,.55)';
+    X.fillRect(sx|0,sy|0,1.6,1.6);
+  }
+  const R=w*0.115, top=y0+6, bot=y1-4;
+  const rot=t*0.75, RH=13, off=(t*26)%RH, N=22, SEG=14;
+  const nrows=Math.ceil((bot-top)/RH)+2;
+  const angOf=i=>(-Math.PI/2+((i+0.5)/N)*Math.PI);
+  // tower body
+  for(let i=0;i<N;i++){
+    const sx=cx+Math.sin(-Math.PI/2+(i/N)*Math.PI)*R;
+    const ex=cx+Math.sin(-Math.PI/2+((i+1)/N)*Math.PI)*R;
+    const a=angOf(i), d=Math.cos(a), s=0.16+0.92*d;
+    const surf=((a+rot)%TAU+TAU)%TAU, col=Math.floor(surf/(TAU/SEG));
+    for(let r=-1;r<nrows;r++){
+      const yy=top+r*RH+off;
+      const y=Math.max(yy,top), yb=Math.min(yy+RH-1.5,bot);
+      if(yb<=y) continue;
+      const base=((col+r)%2)?[104,132,214]:[66,90,168];
+      X.fillStyle='rgb('+(base[0]*s|0)+','+(base[1]*s|0)+','+(base[2]*s|0)+')';
+      X.fillRect(sx,y,Math.max(1,ex-sx+0.8),yb-y);
+    }
+  }
+  // ledges wrapping the tower
+  const LED=[[0.0,0.80],[2.1,0.60],[4.0,0.40],[5.4,0.22]];
+  for(const [la,fy] of LED){
+    const ly=top+(bot-top)*fy+off*0.35;
+    for(let i=0;i<N;i++){
+      const a=angOf(i), d=Math.cos(a);
+      const surf=((a+rot)%TAU+TAU)%TAU;
+      let ad=Math.abs(surf-la); if(ad>Math.PI) ad=TAU-ad;
+      if(ad>0.62) continue;
+      const sx=cx+Math.sin(-Math.PI/2+(i/N)*Math.PI)*R;
+      const ex=cx+Math.sin(-Math.PI/2+((i+1)/N)*Math.PI)*R;
+      X.fillStyle='rgba(143,240,160,'+(0.30+0.65*d)+')';
+      X.fillRect(sx,ly,Math.max(1,ex-sx+0.8),5);
+    }
+  }
+  // door on the front face, near the top
+  const fs=Math.cos(rot);
+  if(fs>0.15){
+    const dx=cx+Math.sin(-rot)*R*0.0;
+    X.fillStyle='rgba(255,93,115,'+(0.45+0.55*fs)+')';
+    X.fillRect(dx-7*fs-3,top+16,14*fs+6,20);
+    X.fillStyle='rgba(2,3,10,.6)'; X.fillRect(dx-1,top+24,2,4);
+  }
+  // hero hopping on the front face
+  const hop=Math.abs(Math.sin(t*3.2))*11;
+  const hy=top+(bot-top)*0.80+off*0.35-hop;
+  X.fillStyle='#ffd23b'; X.fillRect(cx-5,hy-15,10,15);
+  X.fillStyle='#02030a'; X.fillRect(cx-3,hy-12,2,2); X.fillRect(cx+1,hy-12,2,2);
+  X.fillStyle='#ff5d73'; X.fillRect(cx-5,hy-4,10,4);
+  X.restore();
+}
+function artPinball(x0,y0,x1,y1,t){
+  const w=x1-x0,h=y1-y0, cx=x0+w/2;
+  X.save(); X.beginPath(); X.rect(x0,y0,w,h); X.clip();
+  X.fillStyle='#04060f'; X.fillRect(x0,y0,w,h);
+  // narrow upright playfield in the middle, like a real table
+  const pw=Math.min(w*0.44,h*0.80), px0=cx-pw/2, px1=cx+pw/2, py0=y0+5, py1=y1-5;
+  const g=X.createLinearGradient(0,py0,0,py1);
+  g.addColorStop(0,'#12294a'); g.addColorStop(1,'#050c1c');
+  X.fillStyle=g; X.fillRect(px0,py0,pw,py1-py0);
+  X.strokeStyle='rgba(127,160,255,.65)'; X.lineWidth=2.5;
+  X.beginPath();
+  X.moveTo(px0+1,py1); X.lineTo(px0+1,py0+26);
+  X.quadraticCurveTo(cx,py0-6,px1-1,py0+26); X.lineTo(px1-1,py1); X.stroke();
+  // plunger lane
+  X.fillStyle='rgba(95,120,200,.30)'; X.fillRect(px1-11,py0+34,2,py1-py0-40);
+  // bumpers
+  const bump=[[cx,py0+h*0.16],[cx-pw*0.22,py0+h*0.30],[cx+pw*0.22,py0+h*0.30]];
+  bump.forEach((b,i)=>{
+    const pu=0.5+0.5*Math.sin(t*3+i*2), R=9+pu*2.5;
+    X.fillStyle=['#6ad0ff','#ffd23b','#8ef0a0'][i];
+    X.globalAlpha=0.55+0.45*pu;
+    X.beginPath(); X.arc(b[0],b[1],R,0,TAU); X.fill();
+    X.globalAlpha=1;
+    X.strokeStyle='rgba(255,255,255,.6)'; X.lineWidth=1.6;
+    X.beginPath(); X.arc(b[0],b[1],R,0,TAU); X.stroke();
+  });
+  // drop-target bank
+  const tw=(pw-34)/5;
+  for(let i=0;i<5;i++){
+    X.fillStyle=(Math.floor(t*1.6+i)%3)?'#5f7ad0':'#ff5d73';
+    X.fillRect(px0+17+i*tw,py0+h*0.47,tw-5,6);
+  }
+  // slingshots
+  X.fillStyle='rgba(255,93,115,.5)';
+  X.beginPath(); X.moveTo(px0+6,py1-58); X.lineTo(px0+22,py1-40); X.lineTo(px0+6,py1-30); X.fill();
+  X.beginPath(); X.moveTo(px1-6,py1-58); X.lineTo(px1-22,py1-40); X.lineTo(px1-6,py1-30); X.fill();
+  // flippers, meeting over a drain gap
+  const fy=py1-14, gap=pw*0.28, len=pw*0.24, ang=Math.max(0,Math.sin(t*2.4))*0.55;
+  function flip(px,dir){
+    X.save(); X.translate(px,fy); X.rotate(dir*(0.40-ang));
+    X.fillStyle='#ff5d73'; X.beginPath();
+    X.moveTo(0,-5.5); X.lineTo(dir*len,-3); X.lineTo(dir*len,3); X.lineTo(0,6); X.closePath(); X.fill();
+    X.restore();
+  }
+  flip(cx-gap,1); flip(cx+gap,-1);
+  // ball
+  const bx=cx+Math.sin(t*1.7)*pw*0.30, by=py0+h*0.26+Math.abs(Math.sin(t*2.2))*h*0.40;
+  X.fillStyle='#e8eeff'; X.beginPath(); X.arc(bx,by,6,0,TAU); X.fill();
+  X.fillStyle='rgba(255,255,255,.95)'; X.beginPath(); X.arc(bx-2,by-2,2,0,TAU); X.fill();
+  X.restore();
+}
+function artBatty(x0,y0,x1,y1,t){
+  const w=x1-x0,h=y1-y0, cx=x0+w/2;
+  X.save(); X.beginPath(); X.rect(x0,y0,w,h); X.clip();
+  X.fillStyle='#050a1c'; X.fillRect(x0,y0,w,h);
+  // bricks
+  const cols=10, rows=5, bw=(w-28)/cols, bh=13;
+  const pal=['#ff5b5b','#ffd23b','#33d15a','#33e0e0','#9f6bff'];
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    const gone=((c*7+r*3+Math.floor(t*1.6))%17)<3;
+    if(gone) continue;
+    X.fillStyle=pal[r%pal.length];
+    X.fillRect(x0+14+c*bw,y0+26+r*(bh+4),bw-3,bh);
+    X.fillStyle='rgba(255,255,255,.20)';
+    X.fillRect(x0+14+c*bw,y0+26+r*(bh+4),bw-3,3);
+  }
+  // aliens
+  const ax=cx+Math.sin(t*1.1)*w*0.3, ay=y0+h*0.60;
+  X.fillStyle='#9f6bff';
+  X.fillRect(ax-9,ay-6,18,10); X.fillRect(ax-5,ay-10,10,4);
+  X.fillStyle='#02030a'; X.fillRect(ax-5,ay-3,3,3); X.fillRect(ax+2,ay-3,3,3);
+  // bat
+  const px=cx+Math.sin(t*1.9)*w*0.26;
+  X.fillStyle='#6ad0ff'; X.fillRect(px-27,y1-20,54,8);
+  X.fillStyle='#e8eeff'; X.fillRect(px-27,y1-20,54,2);
+  // ball
+  const bx=px+Math.sin(t*3.1)*22, by=y0+h*0.55+Math.abs(Math.sin(t*2.6))*h*0.30;
+  X.fillStyle='#ffd23b'; X.fillRect(bx-4,by-4,8,8);
+  X.restore();
+}
+const ART={tower:artTower,pinball:artPinball,batty:artBatty};
+
+/* ---- the preview card ---- */
+function drawCard(t){
+  const g=GAMES[sel];
+  // frame
+  X.fillStyle='#0a0f26'; X.fillRect(CARD_X0-4,CARD_Y0-4,CARD_X1-CARD_X0+8,CARD_Y1-CARD_Y0+8);
+  ART[g.art](CARD_X0,CARD_Y0,CARD_X1,CARD_Y1-PLATE,t);
+  X.fillStyle='#02030a'; X.fillRect(CARD_X0,CARD_Y1-PLATE,CARD_X1-CARD_X0,PLATE);
+  // glow border
+  X.strokeStyle='#ffd23b'; X.lineWidth=2;
+  X.shadowColor='rgba(255,210,59,.7)'; X.shadowBlur=14;
+  X.strokeRect(CARD_X0-3,CARD_Y0-3,CARD_X1-CARD_X0+6,CARD_Y1-CARD_Y0+6);
+  X.shadowBlur=0;
+  // scanlines over the preview
+  X.fillStyle='rgba(0,0,0,.22)';
+  for(let y=CARD_Y0;y<CARD_Y1;y+=3) X.fillRect(CARD_X0,y,CARD_X1-CARD_X0,1);
+  // title plate
+  X.fillStyle='rgba(2,3,10,.92)'; X.fillRect(CARD_X0,CARD_Y1-PLATE,CARD_X1-CARD_X0,PLATE);
+  X.fillStyle='rgba(255,210,59,.35)'; X.fillRect(CARD_X0,CARD_Y1-PLATE,CARD_X1-CARD_X0,1);
+  let ts=22; X.font='bold '+ts+'px "Courier New",monospace';
+  while(X.measureText(g.title).width>CARD_X1-CARD_X0-24 && ts>11){ ts--; X.font='bold '+ts+'px "Courier New",monospace'; }
+  text(g.title,W/2,CARD_Y1-29,ts,'#ffd23b','center');
+  text(G(g,'tribute'),W/2,CARD_Y1-11,10,'#7fa0ff','center','normal');
+}
+
+/* ---- game list ---- */
+function drawList(){
+  rows.length=0;
+  const y0=396, rh=42;
+  for(let i=0;i<GAMES.length;i++){
+    const g=GAMES[i], y=y0+i*rh, on=(i===sel), hv=(i===hover);
+    rows.push({y0:y-rh/2+2,y1:y+rh/2-2,i});
+    if(on){
+      X.fillStyle='rgba(255,210,59,.13)'; X.fillRect(30,y-rh/2+2,W-60,rh-4);
+      X.fillStyle='#ffd23b'; X.fillRect(30,y-rh/2+2,3,rh-4);
+    }else if(hv){
+      X.fillStyle='rgba(127,160,255,.10)'; X.fillRect(30,y-rh/2+2,W-60,rh-4);
+    }
+    if(on && Math.floor(perf/380)%2===0) text('▶',48,y-6,15,'#ffd23b','center');
+    text(String(i+1),48,y+12,10,'#5f7ad0','center','normal');
+    let ts=17; X.font='bold '+ts+'px "Courier New",monospace';
+    while(X.measureText(g.title).width>250 && ts>10){ ts--; X.font='bold '+ts+'px "Courier New",monospace'; }
+    text(g.title,68,y-7,ts,on?'#e8eeff':'#9fb6ff','left');
+    text(G(g,'ctrl'),68,y+11,9.5,on?'#8ef0a0':'#5f7ad0','left','normal');
+    text(g.year,W-42,y,13,on?'#ffd23b':'#3a4a99','right');
+  }
+}
+
+/* ---- footer of the screen ---- */
+function drawFoot(){
+  const g=GAMES[sel];
+  X.fillStyle='rgba(95,120,200,.28)'; X.fillRect(34,532,W-68,1);
+  // description of the selected game, wrapped
+  X.font='normal 11px "Courier New",monospace';
+  const words=G(g,'desc').split(' ');
+  const lines=[]; let cur='';
+  for(const wd of words){
+    const tryl=cur?cur+' '+wd:wd;
+    if(X.measureText(tryl).width>W-80 && cur){ lines.push(cur); cur=wd; } else cur=tryl;
+  }
+  if(cur) lines.push(cur);
+  lines.slice(0,3).forEach((L,i)=>text(L,W/2,552+i*14,11,'#9fb6ff','center','normal'));
+
+  if(Math.floor(perf/450)%2===0) text(T('press'),W/2,604,15,'#ffd23b','center');
+  text(T('nav'),W/2,624,9.5,'#5f7ad0','center','normal');
+}
+
+/* ---------------- loop ---------------- */
+function frame(ts){
+  requestAnimationFrame(frame);
+  if(!last) last=ts;
+  let dt=(ts-last)/1000; last=ts; perf=ts;
+  if(dt>0.05) dt=0.05;
+  if(tiltT>0){ tiltT-=dt; if(tiltT<=0) cabEl.classList.remove('tiltL','tiltR'); }
+  if(mode!=='menu') return;
+  const t=ts/1000;
+  drawBg(dt);
+  drawHeader();
+  drawCard(t);
+  drawList();
+  drawFoot();
+}
+
+/* ---------------- boot ---------------- */
+function boot(){
+  document.documentElement.lang=lang;
+  buildLangs(); buildChrome();
+  const h=(location.hash||'').replace('#','').toLowerCase();
+  if(h){
+    const i=GAMES.findIndex(g=>g.id===h||g.repo===h);
+    if(i>=0){ sel=i; setTimeout(()=>launch(i),120); }
+  }
+  requestAnimationFrame(frame);
+}
+addEventListener('hashchange',()=>{
+  const h=(location.hash||'').replace('#','').toLowerCase();
+  if(!h){ if(mode==='play') toMenu(); return; }
+  const i=GAMES.findIndex(g=>g.id===h||g.repo===h);
+  if(i>=0 && (mode!=='play'||i!==sel)) launch(i);
+});
+boot();
+
+/* test hook */
+window.__arcade={GAMES,launch,toMenu,move,setLang,gameURL,
+  get mode(){return mode;}, get sel(){return sel;}, get lang(){return lang;}};
+</script>
+</body>
+</html>
