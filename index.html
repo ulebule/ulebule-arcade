@@ -294,7 +294,7 @@ const GAMES=[
 /* ---------------- i18n ---------------- */
 const LANGS=['en','sl','de','it','fr'];
 const STR={
-  en:{install:'INSTALL',offh:'NO CONNECTION',offb:'The cabinet works offline, but each game still has to be fetched from its own address the first time. Reconnect and try again.',retry:'TRY AGAIN',
+  en:{install:'INSTALL',offh:'NOT SAVED OFFLINE',offb:'This cabinet is stored on your device, but this game is not — open it once with a connection and it will be here next time.',retry:'TRY AGAIN',
       sub:'RETRO GAMES',select:'SELECT A GAME',insert:'◎ INSERT COIN',
       press:'PRESS START',tap:'TAP A CABINET TO PLAY',
       nav:'◀ ▶ / ↑ ↓  select     ENTER  start',
@@ -302,7 +302,7 @@ const STR={
       src:'SOURCE',prev:'◀',next:'▶',loading:'LOADING…',
       playing:'NOW PLAYING',games:'GAMES',foot:'all games are single-file HTML, hosted on GitHub Pages',
       hintplay:'keyboard goes to the game — click the screen if it stops responding'},
-  sl:{install:'NAMESTI',offh:'NI POVEZAVE',offb:'Avtomat deluje brez povezave, vsako igro pa je treba prvič naložiti z njenega naslova. Poveži se in poskusi znova.',retry:'POSKUSI ZNOVA',
+  sl:{install:'NAMESTI',offh:'NI SHRANJENA ZA OFFLINE',offb:'Avtomat je shranjen na tvoji napravi, ta igra pa ne — odpri jo enkrat s povezavo in naslednjič bo tu.',retry:'POSKUSI ZNOVA',
       sub:'RETRO IGRE',select:'IZBERI IGRO',insert:'◎ VRZI KOVANEC',
       press:'PRITISNI START',tap:'TAPNI AVTOMAT ZA IGRO',
       nav:'◀ ▶ / ↑ ↓  izbira     ENTER  začni',
@@ -310,7 +310,7 @@ const STR={
       src:'KODA',prev:'◀',next:'▶',loading:'NALAGAM…',
       playing:'IGRAŠ',games:'IGRE',foot:'vse igre so ena sama HTML datoteka na GitHub Pages',
       hintplay:'tipkovnica gre v igro — klikni na zaslon, če se neha odzivati'},
-  de:{install:'INSTALLIEREN',offh:'KEINE VERBINDUNG',offb:'Der Automat läuft offline, aber jedes Spiel muss beim ersten Mal von seiner eigenen Adresse geladen werden. Verbinde dich und versuche es erneut.',retry:'NOCHMAL',
+  de:{install:'INSTALLIEREN',offh:'NICHT OFFLINE GESPEICHERT',offb:'Der Automat liegt auf deinem Gerät, dieses Spiel noch nicht — öffne es einmal mit Verbindung, dann ist es beim nächsten Mal da.',retry:'NOCHMAL',
       sub:'RETRO-SPIELE',select:'SPIEL WÄHLEN',insert:'◎ MÜNZE EINWERFEN',
       press:'START DRÜCKEN',tap:'AUTOMAT ANTIPPEN ZUM SPIELEN',
       nav:'◀ ▶ / ↑ ↓  wählen     ENTER  starten',
@@ -318,7 +318,7 @@ const STR={
       src:'QUELLCODE',prev:'◀',next:'▶',loading:'LÄDT…',
       playing:'LÄUFT',games:'SPIELE',foot:'alle Spiele sind eine einzige HTML-Datei auf GitHub Pages',
       hintplay:'Tastatur geht ins Spiel — klicke den Bildschirm an, falls es nicht reagiert'},
-  it:{install:'INSTALLA',offh:'NESSUNA CONNESSIONE',offb:'Il cabinato funziona offline, ma ogni gioco va scaricato la prima volta dal suo indirizzo. Riconnettiti e riprova.',retry:'RIPROVA',
+  it:{install:'INSTALLA',offh:'NON SALVATO OFFLINE',offb:'Il cabinato è salvato sul tuo dispositivo, questo gioco no — aprilo una volta con la connessione e la prossima volta sarà qui.',retry:'RIPROVA',
       sub:'GIOCHI RETRO',select:'SCEGLI UN GIOCO',insert:'◎ INSERISCI MONETA',
       press:'PREMI START',tap:'TOCCA UN CABINATO PER GIOCARE',
       nav:'◀ ▶ / ↑ ↓  scegli     ENTER  avvia',
@@ -326,7 +326,7 @@ const STR={
       src:'CODICE',prev:'◀',next:'▶',loading:'CARICO…',
       playing:'IN GIOCO',games:'GIOCHI',foot:'tutti i giochi sono un unico file HTML su GitHub Pages',
       hintplay:'la tastiera va al gioco — clicca lo schermo se non risponde'},
-  fr:{install:'INSTALLER',offh:'PAS DE CONNEXION',offb:'La borne fonctionne hors ligne, mais chaque jeu doit être chargé une première fois depuis sa propre adresse. Reconnecte-toi et réessaie.',retry:'RÉESSAYER',
+  fr:{install:'INSTALLER',offh:'PAS ENREGISTRÉ HORS LIGNE',offb:'La borne est enregistrée sur ton appareil, pas encore ce jeu — ouvre-le une fois connecté et il sera là la prochaine fois.',retry:'RÉESSAYER',
       sub:'JEUX RÉTRO',select:'CHOISIS UN JEU',insert:'◎ INSÉRER UNE PIÈCE',
       press:'APPUIE SUR START',tap:'TOUCHE UNE BORNE POUR JOUER',
       nav:'◀ ▶ / ↑ ↓  choisir     ENTER  démarrer',
@@ -487,7 +487,9 @@ function launchNow(i){
   gf.style.display='block';
   cv.style.display='none';
   buildChrome();
-  showOffline(!navigator.onLine);
+  showOffline(false);
+  clearTimeout(loadGuard);
+  loadGuard=setTimeout(verifyGameLoaded,4000);
   try{ location.hash=g.id; }catch(e){}
   setTimeout(focusGame,400);
 }
@@ -500,6 +502,7 @@ function toMenu(){
   gf.style.display='none';
   gf.src='about:blank';
   cv.style.display='block';
+  clearTimeout(loadGuard);
   showOffline(false);
   buildChrome();
   try{ if(location.hash) history.replaceState(null,'',location.pathname+location.search); }catch(e){}
@@ -516,7 +519,21 @@ function focusGame(){
     }
   }catch(e){}
 }
-gf.addEventListener('load',focusGame);
+let loadGuard=0;
+function verifyGameLoaded(){
+  if(mode!=='play') return;
+  let ok=false;
+  try{
+    const d=gf.contentDocument;
+    ok=!!(d && (d.querySelector('canvas') || d.querySelector('#stage')));
+  }catch(e){ ok=true; }          // cross-origin frame: cannot look, assume it loaded
+  if(!ok) showOffline(true);
+}
+gf.addEventListener('load',()=>{
+  focusGame();
+  clearTimeout(loadGuard);
+  if(mode==='play') loadGuard=setTimeout(verifyGameLoaded,400);
+});
 
 /* ---------------- keyboard ---------------- */
 addEventListener('keydown',e=>{
@@ -914,12 +931,10 @@ function showOffline(on){
   offhEl.textContent=T('offh'); offbEl.textContent=T('offb'); offbtn.textContent=T('retry');
   offEl.classList.toggle('on',!!on);
 }
-offbtn.addEventListener('click',e=>{
-  e.preventDefault();
-  if(navigator.onLine){ showOffline(false); launchNow(sel); }
-});
+offbtn.addEventListener('click',e=>{ e.preventDefault(); showOffline(false); launchNow(sel); });
 addEventListener('online',()=>{ if(offEl.classList.contains('on')) showOffline(false); });
-addEventListener('offline',()=>{ if(mode==='play') showOffline(true); });
+/* Going offline is not itself a failure: a game cached by its own service
+   worker keeps playing. verifyGameLoaded() decides, after the frame tried. */
 
 /* ---------------- install prompt ---------------- */
 let deferredPrompt=null;

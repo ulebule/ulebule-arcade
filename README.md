@@ -50,11 +50,16 @@ opens standalone with the cabinet filling the screen, and the manifest
 shortcuts jump straight to a single game.
 
 The service worker caches the cabinet itself, so the launcher opens with no
-connection. The games do not come along: the worker is registered at
-`/ulebule-arcade/` and its scope ends there, while each game lives at a
-sibling path (`/batty/`, `/nebulus/`, …). Launching a game offline shows a
-short notice instead of a blank screen. Making the games playable offline
-too would mean giving each game repo its own service worker.
+connection. Each game repo carries its own worker as well, which is what makes
+a game playable offline *inside* the cabinet: a service worker only controls
+pages under its own path, so `/ulebule-arcade/sw.js` can never cache
+`/batty/`. The upshot is that a game plays offline once it has been opened
+once, and a game you have never opened shows a short notice instead of a blank
+screen.
+
+Cache names matter here, because caches are shared across the whole origin:
+every worker prefixes its cache with its repo name and deletes only its own
+old versions. Without that, opening one game wipes the others.
 
 ## Technical
 

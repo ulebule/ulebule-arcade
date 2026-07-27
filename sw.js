@@ -3,11 +3,16 @@
 
    Note on scope: this worker is registered at /ulebule-arcade/, so it only
    controls pages under that path. The games live at sibling paths
-   (/batty/, /nebulus/, …) and are therefore NOT controlled by this worker —
-   each game would need its own service worker to be playable offline. The
-   launcher detects that case and says so rather than showing a blank screen. */
+   (/batty/, /nebulus/, …) and each carries its own worker — that is what makes
+   a game playable offline inside the cabinet, once it has been opened once.
+   A game that has never been opened simply fails to load, and the launcher
+   says so rather than showing a blank screen. */
 
-const VERSION = 'arcade-v1';
+/* Caches are shared across the whole origin (ulebule.github.io), so every
+   app here can see every other app's caches. Only ever delete our own — the
+   prefix check is what stops one game from wiping another game's cache. */
+const PREFIX  = 'arcade-';
+const VERSION = PREFIX + 'v1';
 const SHELL = [
   './',
   './index.html',
@@ -31,7 +36,8 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k.startsWith(PREFIX) && k !== VERSION)
+                            .map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
